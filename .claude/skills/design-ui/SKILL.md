@@ -6,8 +6,8 @@ disable-model-invocation: true
 Use Google Stitch to design UI for the given description.
 
 ## Prerequisites
-- Stitch MCP server must be configured in `.claude/mcp.json` with a valid GCP project ID
-- User must have run `gcloud auth application-default login`
+- Stitch MCP server must be configured in `.claude/mcp.json` with a valid Stitch project ID
+- `STITCH_API_KEY` environment variable must be set (the MCP server runs in direct mode, not proxy)
 - At least one Stitch project should exist (create at stitch.withgoogle.com or via `create_project`)
 
 ## Workflow

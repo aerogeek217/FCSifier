@@ -28,9 +28,8 @@ The template includes these MCP servers in `.claude/mcp.json`. Ask the user **wh
 
 ### If Stitch is selected:
 1. Ask the user to create a new Stitch project at stitch.withgoogle.com (each project should have its own)
-2. Ask for the Stitch project ID
-3. Update `STITCH_PROJECT_ID` in `.claude/mcp.json`
-4. Confirm they've already run `gcloud auth application-default login` (one-time setup)
+2. Ask for the Stitch project ID — update `STITCH_PROJECT_ID` in `.claude/mcp.json`
+3. Confirm `STITCH_API_KEY` is set as an OS environment variable (Stitch uses direct mode, not proxy)
 
 ## 4. Hooks
 Review the PostToolUse hook in `.claude/settings.json`. Ask the user what post-edit verification command to use (e.g., `npm run lint --silent`, `cargo check 2>&1`, `python -m py_compile`). Update the hook command.
