@@ -35,9 +35,10 @@ The template includes these MCP servers in `.claude/mcp.json`. Ask the user **wh
 **Remove any servers the user doesn't want.** Don't leave unused servers configured.
 
 ### If Stitch is selected:
-1. Ask the user to create a new Stitch project at stitch.withgoogle.com (each project should have its own)
-2. Ask for the Stitch project ID — update `STITCH_PROJECT_ID` in `.claude/mcp.json`
-3. Confirm `STITCH_API_KEY` is set as an OS environment variable (Stitch uses direct mode, not proxy)
+1. Confirm `STITCH_API_KEY` is set as an OS environment variable (Google AI Studio API key)
+2. Create a new Stitch project using `create_project` (or ask the user to create one at stitch.withgoogle.com)
+3. Save the Stitch project ID to memory so future sessions know which project to use
+4. Note: `list_screens` takes a bare `projectId` (just the number), not the `projects/` prefix format
 
 ## 5. Hooks
 Review the PostToolUse hook in `.claude/settings.json`. Ask the user what post-edit verification command to use (e.g., `npm run lint --silent`, `cargo check 2>&1`, `python -m py_compile`). Update the hook command.

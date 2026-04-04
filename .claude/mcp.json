@@ -13,11 +13,10 @@
       "args": ["-y", "@anthropic-ai/mcp-server-sqlite"]
     },
     "stitch": {
-      "command": "npx",
-      "args": ["-y", "@_davideast/stitch-mcp", "direct"],
-      "env": {
-        "STITCH_PROJECT_ID": "[REPLACE with your Stitch project ID from stitch.withgoogle.com]",
-        "STITCH_API_KEY": "[REPLACE or set as OS environment variable]"
+      "type": "http",
+      "url": "https://stitch.googleapis.com/mcp",
+      "headers": {
+        "X-Goog-Api-Key": "${STITCH_API_KEY}"
       }
     }
   }
