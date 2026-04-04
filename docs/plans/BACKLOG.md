@@ -1,3 +1,7 @@
 # Backlog
 
-## Future Ideas
+## Technical Debt
+
+## Deferred Features
+
+## Ideas

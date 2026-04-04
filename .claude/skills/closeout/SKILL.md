@@ -5,10 +5,12 @@ description: End-of-session verification and documentation update
 Perform end-of-session closeout for the current work.
 
 ## 1. Build & Test Verification
-- Run the project's build command and confirm zero errors
-- Run the project's test command
+- Check CLAUDE.md for the project's build and test commands
+- Run the build command and confirm zero errors
+- Run the test command
 - If any tests fail, report them but do NOT auto-fix (the user decides)
 - If no tests exist for new code, note which files lack coverage
+- **Continue to steps 2-5 even if build/tests fail** — report failures but don't block doc updates
 
 ## 2. Update docs/plans/TODO.md
 - Read the current TODO.md
