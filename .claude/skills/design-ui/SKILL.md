@@ -23,8 +23,17 @@ Use Google Stitch to design UI for the given description.
 
 1. **Find the project** — check memory for the Stitch project ID, or use `list_projects`
 2. **Generate the screen** using `generate_screen_from_text` with the user's description: $ARGUMENTS
-3. **Review the result** using `get_screen` to inspect the generated design
+3. **Review the full design** — use `get_screen` to retrieve the generated design. Read and analyze ALL of the following:
+   - **Layout structure** — how sections are arranged, grid/flex patterns, nesting hierarchy
+   - **Component inventory** — every button, input, card, nav element, modal, list, etc.
+   - **Spacing and sizing** — padding, margins, gaps, widths, heights
+   - **Typography** — font sizes, weights, line heights, heading hierarchy
+   - **Colors** — background, text, border, accent, and state colors (hover, active, disabled)
+   - **Visual details** — border radius, shadows, dividers, icons, imagery
+   - **Responsive hints** — any layout patterns that suggest breakpoint behavior
+   - If Stitch returns code/markup, read it thoroughly — don't just skim for colors
 4. **Iterate if needed** using `edit_screens` to refine or `generate_variants` for alternatives
-5. **Integrate into the project** — adapt the design to fit the project's existing patterns and framework
+5. **Confirm with user** — present a summary of the design decisions you extracted and ask the user to confirm before writing code
+6. **Integrate into the project** — translate the FULL design into code, not just the color palette. Map every component, layout pattern, and spacing value from the mockup into the project's framework. Cross-reference the mockup as you build each section to ensure nothing is dropped.
 
-Ask the user to confirm the design before integrating code into the project.
+After integration, do a final check: re-read the Stitch screen data and compare it against the code you wrote. Flag any design elements that couldn't be faithfully reproduced.
