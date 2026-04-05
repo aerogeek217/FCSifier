@@ -38,7 +38,7 @@ If the project has a UI, ask the user which frontend design tool they want to us
 This choice affects MCP server configuration in the next step.
 
 ## 4. MCP Servers
-The template includes these MCP servers in `.claude/mcp.json`. Ask the user **which ones they want active** for this project:
+The template includes these MCP servers in `mcp.json` (project root). Ask the user **which ones they want active** for this project:
 
 - **GitHub** — issues, PRs, code review. Keep for git-hosted projects.
 - **Playwright** — browser automation and testing. Keep for web projects.

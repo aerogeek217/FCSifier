@@ -6,7 +6,7 @@ disable-model-invocation: true
 Use Google Stitch to design UI for the given description.
 
 ## Prerequisites
-- Stitch MCP server must be configured in `.claude/mcp.json` (HTTP direct mode with `STITCH_API_KEY`)
+- Stitch MCP server must be configured in `mcp.json` at the project root (HTTP direct mode with `STITCH_API_KEY`)
 - `STITCH_API_KEY` environment variable must be set (Google AI Studio API key)
 - Check memory for the project's Stitch project ID. If not saved, use `list_projects` to find it.
 

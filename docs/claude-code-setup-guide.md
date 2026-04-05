@@ -418,7 +418,7 @@ MCP (Model Context Protocol) servers give Claude access to external tools and se
 
 ### Configuration
 
-MCP servers can be configured in `.claude/settings.json` or the dedicated `.claude/mcp.json`:
+MCP servers can be configured in `.claude/settings.json` or the dedicated `mcp.json` in the project root:
 
 ```json
 {
