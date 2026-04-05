@@ -11,7 +11,10 @@
   docs/
     plans/            # Task tracking and feature plans
     ARCHITECTURE.md   # This file — codebase navigation map
+    DECISIONS.md      # Architecture decision records (ADRs)
+    WORKFLOW.md       # End-to-end development workflow reference
   .claude/            # Claude Code config (skills, agents, rules, hooks)
+    hooks/            # Pre/post tool-use guard scripts
 ```
 
 ## Entry Points
