@@ -17,6 +17,11 @@
 ## Conventions
 See `.claude/rules/` — rules load automatically when editing matching paths.
 
+## Testing
+- Every feature or bug fix includes tests — tests are a deliverable, not an afterthought
+- Test count: **[0/0 tests passing]** *(update this after every test run)*
+- Include test count in commit messages, e.g.: `Add user auth (45/45 tests passing)`
+
 ## Constraints
 - [Hard constraint 1 — things Claude must NEVER do]
 - [Hard constraint 2]
@@ -27,7 +32,7 @@ See `.claude/rules/` — rules load automatically when editing matching paths.
 ## Review Workflow
 - Before committing: run architecture-reviewer on changed files *(hook reminder)*
 - Before pushing: run security-reviewer on the diff *(hook reminder)*
-- After new features: run test-writer for untested code paths
+- Before committing: run test-writer on new/changed source files *(hook reminder)*
 
 ## Safety Guardrails
 Hooks block: force push, `git reset --hard`, and non-standard branch names.

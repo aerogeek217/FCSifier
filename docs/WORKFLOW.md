@@ -83,14 +83,14 @@ When Claude runs `git push`, a hook reminds it to run the **security-reviewer** 
 - Insecure data handling and auth flaws
 - Insecure defaults (permissive CORS, debug mode, weak crypto)
 
-### Test Writing (after features)
-After implementing new functionality, ask Claude to run the **test-writer** agent. It:
+### Test Writing (before commit)
+When Claude runs `git commit`, a hook reminds it to run the **test-writer** agent for new/changed source files. It:
 - Learns your existing test conventions (framework, layout, helpers)
 - Generates tests for uncovered code paths
 - Covers happy path, edge cases, and error conditions
 - Runs tests and fixes failures before reporting done
 
-This one is not hook-enforced — invoke when appropriate.
+**Test count convention:** The test count in `CLAUDE.md` (`Test count: **[X/X tests passing]**`) is updated by `/closeout` and included in commit messages. This creates a visible record that reinforces tests as a first-class deliverable.
 
 ---
 
@@ -100,7 +100,7 @@ This one is not hook-enforced — invoke when appropriate.
 
 | Action | Hook | Behavior |
 |--------|------|----------|
-| `git commit` | Commit guard | Soft reminder: run architecture-reviewer |
+| `git commit` | Commit guard | Soft reminder: run test-writer + architecture-reviewer |
 | `git push` | Push guard | Soft reminder: run security-reviewer |
 | `git push --force` | Force push block | **BLOCKED** |
 | `git push -f` | Force push block | **BLOCKED** |
@@ -142,7 +142,7 @@ Run `/closeout` before ending your session. This skill:
 |-------|---------|-------------|
 | architecture-reviewer | Structure, patterns, documentation | Commit guard hook |
 | security-reviewer | Vulnerabilities, secrets, auth flaws | Push guard hook |
-| test-writer | Generate tests for new code | Manual invocation |
+| test-writer | Generate tests for new code | Commit guard hook |
 
 ## Hook Configuration
 

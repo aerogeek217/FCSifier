@@ -51,9 +51,9 @@ fi
 
 # --- Soft reminders (exit 0 with context) ---
 
-# Remind about architecture-reviewer before git commit
+# Remind about architecture-reviewer and test-writer before git commit
 if echo "$CMD" | grep -qE 'git commit'; then
-  echo '{"hookSpecificOutput":{"additionalContext":"REVIEW WORKFLOW: Run architecture-reviewer on changed files before committing. If already done, proceed."}}'
+  echo '{"hookSpecificOutput":{"additionalContext":"REVIEW WORKFLOW: Before committing: (1) Run test-writer on new/changed source files to generate tests. (2) Run architecture-reviewer on changed files. If already done, proceed."}}'
 fi
 
 # Remind about security-reviewer before git push

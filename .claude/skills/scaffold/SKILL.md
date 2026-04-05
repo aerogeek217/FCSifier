@@ -56,6 +56,9 @@ The template includes these MCP servers in `mcp.json` (project root). Ask the us
 ## 5. Hooks
 Review the PostToolUse hook in `.claude/settings.json`. Ask the user what post-edit verification command to use (e.g., `npm run lint --silent`, `cargo check 2>&1`, `python -m py_compile`). Update the hook command.
 
+## 5b. Testing Convention
+The template includes a test count convention in `CLAUDE.md` (the `Testing` section). Confirm the test command from step 1 is correct — this is what closeout uses to count tests. The `[0/0 tests passing]` placeholder updates automatically via `/closeout`.
+
 ## 6. Rules
 Ask if there are any code conventions or layer-specific rules to set up now. If so, create rule files in `.claude/rules/` scoped to the relevant paths. Delete `_example.md` once real rules exist.
 

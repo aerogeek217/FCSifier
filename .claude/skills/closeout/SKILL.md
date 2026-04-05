@@ -7,9 +7,10 @@ Perform end-of-session closeout for the current work.
 ## 1. Build & Test Verification
 - Check CLAUDE.md for the project's build and test commands
 - Run the build command and confirm zero errors
-- Run the test command
+- Run the test command and count passing/total tests
 - If any tests fail, report them but do NOT auto-fix (the user decides)
 - If no tests exist for new code, note which files lack coverage
+- **Update the test count in CLAUDE.md** (the `Test count: **[X/X tests passing]**` line)
 - **Continue to steps 2-5 even if build/tests fail** — report failures but don't block doc updates
 
 ## 2. Update docs/plans/TODO.md
@@ -35,6 +36,7 @@ Perform end-of-session closeout for the current work.
 ## 5. Commit
 - Stage all changes from this session (including any doc updates from steps 2-4)
 - Create a commit with a clear message summarizing the session's work
+- **Include the test count in the commit message**, e.g.: `Add user auth (45/45 tests passing)`
 - Follow the git conventions in CLAUDE.md
 
 ## 6. Push (ask first)
