@@ -27,6 +27,16 @@ Perform end-of-session closeout for the current work.
 - If the dependency graph changed, update the Dependency Graph section
 - If new key abstractions were introduced, add them
 
-## 5. Summary
+## 5. Commit
+- Stage all changes from this session (including any doc updates from steps 2-4)
+- Create a commit with a clear message summarizing the session's work
+- Follow the git conventions in CLAUDE.md
+
+## 6. Push (ask first)
+- Ask the user if they want to push to the remote
+- If yes, push the current branch
+- If no, skip — do not push
+
+## 7. Summary
 - Print a brief summary of what was accomplished and any open issues
 - List any files that were modified during closeout

@@ -16,6 +16,13 @@ Update `CLAUDE.md` with their answers.
 ## 2. Architecture
 Ask the user to describe the initial module structure or key components. Fill in `docs/ARCHITECTURE.md` with what they describe. It's fine to start minimal — this grows over time.
 
+Also ask about the deployment environment's security posture:
+- Will this app run in a tightly-managed IT environment (e.g., corporate network, air-gapped, firewall-restricted)?
+- What network/internet access should the app assume? (full, limited outbound, no internet)
+- What tolerance is there for external runtime dependencies? (e.g., CDNs, cloud APIs, package registries, telemetry endpoints)
+
+Record the answers in the Constraints section of `CLAUDE.md` and factor them into architecture decisions (e.g., prefer vendored dependencies over CDN imports, avoid phone-home telemetry, bundle assets locally).
+
 ## 3. Frontend Design Approach
 If the project has a UI, ask the user which frontend design tool they want to use:
 
