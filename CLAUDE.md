@@ -14,22 +14,22 @@
 - Run: `[your run command]`
 - Single test: `[your single test command]`
 
-## Code Conventions
-- [Convention 1]
-- [Convention 2]
-- [Convention 3]
+## Conventions
+See `.claude/rules/` — rules load automatically when editing matching paths.
 
 ## Constraints
 - [Hard constraint 1 — things Claude must NEVER do]
 - [Hard constraint 2]
 
 ## Git Workflow
-- Branch naming: `feature/description`, `fix/description`, `refactor/description`
-- Commit messages: imperative mood, under 72 chars
-- One logical change per commit
+- Branches: `feature/description`, `fix/description`, `refactor/description`
+
+## Review Workflow
+- Before committing: run architecture-reviewer on changed files
+- Before merging: run security-reviewer on the diff
+- After new features: run test-writer for untested code paths
 
 ## Planning
-- Active tasks are tracked in `docs/plans/TODO.md` — check it at session start
-- Before starting a multi-step feature, create a plan in `docs/plans/features/`
-- Update TODO.md when completing tasks
-- Run `/closeout` at end of session to verify and update docs
+- Check `docs/plans/TODO.md` at session start
+- Multi-step features get a plan in `docs/plans/features/`
+- Run `/closeout` at end of session

@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: Reviews code for security vulnerabilities and unsafe patterns
+description: Reviews code for security vulnerabilities. Use before merging or when touching auth, input handling, or data storage.
 tools: Read, Grep, Glob
 model: sonnet
 ---

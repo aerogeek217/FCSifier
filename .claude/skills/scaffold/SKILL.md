@@ -14,7 +14,13 @@ Ask the user:
 Update `CLAUDE.md` with their answers.
 
 ## 2. Architecture
-Ask the user to describe the initial module structure or key components. Fill in `docs/ARCHITECTURE.md` with what they describe. It's fine to start minimal — this grows over time.
+Ask the user to describe:
+- Initial directory layout (fills the **File Map** section)
+- Main entry point(s) (fills the **Entry Points** section)
+- 3-5 most common files/directories they expect to modify (fills **Where to Find Things**)
+- Initial module structure or key components (fills remaining sections)
+
+Fill in `docs/ARCHITECTURE.md` with their answers. It's fine to start minimal — this grows over time.
 
 Also ask about the deployment environment's security posture:
 - Will this app run in a tightly-managed IT environment (e.g., corporate network, air-gapped, firewall-restricted)?

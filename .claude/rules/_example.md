@@ -2,16 +2,18 @@
 paths:
   - "src/**"
 ---
-# Example Rules (rename this file and adjust paths)
+# Code Conventions (rename this file and adjust paths)
 
-Delete this file and create rule files scoped to your project's layers. Examples:
+<!-- Replace these examples with your project's actual conventions. -->
+<!-- Delete this file once you've created real rule files. -->
 
-- `data-layer.md` with paths: ["src/data/**"] — database and repository rules
-- `ui-layer.md` with paths: ["src/ui/**", "src/views/**"] — UI/view rules
-- `testing.md` with paths: ["tests/**"] — testing conventions
+## Examples of path-scoped rules:
+- `api-routes.md` with paths: ["src/api/**"] — endpoint naming, middleware patterns
+- `data-layer.md` with paths: ["src/data/**"] — repository patterns, migration rules
+- `testing.md` with paths: ["tests/**"] — test structure, mocking guidelines
 
-Guidelines:
+## Guidelines:
 - One file per logical layer or concern
-- 5-15 rules per file
-- Focus on things Claude would otherwise get wrong, not obvious best practices
+- 5-15 rules per file — focus on things Claude would otherwise get wrong
+- Use path scoping so rules only load when editing matching files
 - See docs/claude-code-setup-guide.md Section 2 for details

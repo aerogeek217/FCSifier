@@ -1,6 +1,6 @@
 ---
 name: architecture-reviewer
-description: Reviews changes for architectural compliance
+description: Reviews changes for architectural compliance. Use after adding files, modules, or dependencies.
 tools: Read, Grep, Glob
 model: sonnet
 ---

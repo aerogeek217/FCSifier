@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Writes tests for new or changed code
+description: Writes tests for new or changed code. Use after implementing features or fixing bugs.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 ---

@@ -7,13 +7,13 @@
 
 ## 1. CLAUDE.md Best Practices
 
-The `CLAUDE.md` file is loaded into every Claude session. Keep it **under 200 lines** and focused on things Claude cannot infer from the code alone.
+The `CLAUDE.md` file is loaded into every Claude session. Keep it **under 150 lines** and focused on things Claude cannot infer from the code alone. Question every line: **"Would Claude make a mistake without this?"** If the answer is no, remove it.
 
 ### What to Include
 - **Architecture reference**: `@docs/ARCHITECTURE.md` (or wherever yours lives)
 - **Current work**: `@docs/plans/TODO.md`
 - **Build & test commands**: The exact commands to build, test, and run the project
-- **Code conventions**: Naming, patterns, and rules that aren't obvious from reading the code
+- **Conventions pointer**: Point to `.claude/rules/` — keep conventions in path-scoped rules, not CLAUDE.md
 - **Hard constraints**: Things Claude must never do (e.g., no third-party packages, no network calls)
 - **Planning workflow**: Where tasks are tracked, how to create feature plans
 - **Git workflow**: Branch naming, commit style
@@ -23,11 +23,15 @@ The `CLAUDE.md` file is loaded into every Claude session. Keep it **under 200 li
 - Detailed architecture (put that in a separate file and `@` import it)
 - Long lists of files or modules (that's what ARCHITECTURE.md is for)
 - Tutorials or explanations aimed at humans (CLAUDE.md is for Claude)
+- Code conventions that belong in path-scoped rules (they waste always-loaded context)
+- Enforcement that belongs in hooks (hooks guarantee execution; CLAUDE.md is guidance)
 
 ### Template
 
 ```markdown
 # [Project Name]
+
+[One-line description]
 
 ## Architecture
 @docs/ARCHITECTURE.md
@@ -39,24 +43,27 @@ The `CLAUDE.md` file is loaded into every Claude session. Keep it **under 200 li
 - Build: [your build command]
 - Test: [your test command]
 - Run: [your run command]
+- Single test: [your single test command]
 
-## Code Conventions
-- [Convention 1]
-- [Convention 2]
+## Conventions
+See `.claude/rules/` — rules load automatically when editing matching paths.
 
 ## Constraints
 - [Hard constraint 1]
 - [Hard constraint 2]
 
 ## Git Workflow
-- Branch naming: feature/description, fix/description, refactor/description
-- Commit messages: imperative mood, under 72 chars
-- One logical change per commit
+- Branches: feature/description, fix/description, refactor/description
+
+## Review Workflow
+- Before committing: run architecture-reviewer on changed files
+- Before merging: run security-reviewer on the diff
+- After new features: run test-writer for untested code paths
 
 ## Planning
-- Active tasks: docs/plans/TODO.md — check at session start
-- Before multi-step features, create a plan in docs/plans/features/
-- Update TODO.md when completing tasks
+- Check docs/plans/TODO.md at session start
+- Multi-step features get a plan in docs/plans/features/
+- Run /closeout at end of session
 ```
 
 ---
@@ -108,21 +115,37 @@ No manual setup needed — memory accumulates automatically.
 
 ## 4. Architecture Documentation
 
-Create an architecture file (e.g., `docs/ARCHITECTURE.md` or root `ARCHITECTURE.md`) and import it from CLAUDE.md with `@`. This serves as the code map so Claude doesn't waste context crawling the codebase.
+Create an architecture file (e.g., `docs/ARCHITECTURE.md` or root `ARCHITECTURE.md`) and import it from CLAUDE.md with `@`. This is Claude's **codebase map** — the first thing it reads before exploring. A good map eliminates redundant Glob/Grep crawling by telling Claude exactly where things are.
 
-### What to Include
-- **Dependency graph**: Which modules depend on which
-- **Key abstractions**: Important interfaces, base classes, or patterns
-- **Data flow**: How data moves through the system
-- **Module index**: What lives where (directory → purpose → key files)
+### What to Include (navigation-first order)
+- **File Map**: Annotated directory tree — one line per directory with a 5-10 word purpose. This is the single highest-impact section for reducing unnecessary file exploration.
+- **Entry Points**: Where execution starts (main, CLI handler, HTTP server, test runner) with exact file paths.
+- **Dependency graph**: Which modules depend on which.
+- **Key abstractions**: Important interfaces, base classes, or patterns.
+- **Data flow**: How data moves through the system.
+- **Where to Find Things**: Lookup table mapping common tasks to file paths ("to add an endpoint, look in src/api/routes/").
 
 ### Update Discipline
-Update this file whenever you add new modules, entities, services, or change the dependency graph. It's the single source of truth Claude reads to understand the codebase structure.
+Update this file whenever you add new directories, entry points, modules, or navigation targets. The `/closeout` skill checks for this automatically. A stale map is worse than no map — it sends Claude to the wrong places.
 
 ### Template
 
 ```markdown
 # Architecture Overview
+
+## File Map
+[project-root]/
+  src/
+    [module]/         # [5-10 word purpose]
+  docs/
+    plans/            # Task tracking and feature plans
+    ARCHITECTURE.md   # This file — codebase navigation map
+  .claude/            # Claude Code config (skills, agents, rules, hooks)
+
+## Entry Points
+| Entry Point | File | Purpose |
+|-------------|------|---------|
+| [main] | [path/to/main] | [what it starts] |
 
 ## Dependency Graph
 [Describe or diagram how modules depend on each other]
@@ -137,10 +160,10 @@ Update this file whenever you add new modules, entities, services, or change the
 2. [Step 2]
 3. [Step 3]
 
-## Module Index
-| Directory | Contents | Key Files |
-|-----------|----------|-----------|
-| [path/] | [description] | [files] |
+## Where to Find Things
+| To do this... | Look here |
+|---------------|-----------|
+| [common task] | [path/to/dir/] |
 ```
 
 ---
@@ -427,6 +450,11 @@ Use `.claude/settings.local.json` (gitignored) for auth tokens or personal MCP c
 | Slack | Team messaging |
 | Notion | Docs and databases |
 
+### Guidelines
+- **Limit active servers to 5-6** — each starts a subprocess; more feels sluggish and adds startup latency.
+- Claude Code uses lazy tool discovery, so connecting many servers doesn't bloat context — but each server process still consumes resources.
+- Remove servers you don't use for a given project (the `/scaffold` skill handles this during setup).
+
 ---
 
 ## 10. Session Discipline
@@ -483,10 +511,12 @@ for compliance.
 
 ## 13. Context Conservation
 
+- **Clear at 60% context capacity** — performance degrades as context fills. Use `/clear` proactively, not just when things break.
 - Reference files with `@path/to/file` instead of asking Claude to search
 - Use subagents for codebase exploration so findings are summarized, not dumped into context
 - Scope investigations: "look at src/Data/" not "find where the database is configured"
 - After the second correction on the same issue, `/clear` and rewrite the prompt
+- **Keep ARCHITECTURE.md current** — a good codebase map prevents the most expensive context waste: redundant file crawling
 
 ---
 
@@ -527,12 +557,14 @@ Claude Code reads settings from multiple locations with a clear precedence order
 
 Pitfalls to watch for when setting up and using Claude Code:
 
-1. **Bloated CLAUDE.md** — over 200 lines causes Claude to deprioritize rules. Keep it lean; use `@` imports and path-scoped rules for details.
+1. **Bloated CLAUDE.md** — over 150 lines causes Claude to deprioritize instructions. Keep it lean; use `@` imports and path-scoped rules for details.
 2. **Kitchen-sink sessions** — mixing unrelated tasks in one session pollutes context. Use `/clear` between tasks.
 3. **Missing verification** — if Claude can't verify its work (no test command, no build check), it can't catch its own mistakes. Always provide verification commands.
 4. **Vague instructions** — "write clean code" is unenforceable. "Use 2-space indentation" and "prefix private methods with underscore" are actionable.
 5. **Over-broad hook matchers** — a `.*` matcher fires on every tool call. Scope hooks tightly with `matcher` and `if:` fields.
 6. **Secrets in shared settings** — API tokens and credentials go in `.claude/settings.local.json` (gitignored), never in `.claude/settings.json`.
+7. **Missing codebase map** — without a File Map and Entry Points in ARCHITECTURE.md, Claude wastes context crawling the repo every session. Keep the map current.
+8. **Duplicating enforcement** — if a hook enforces linting, don't also describe linting rules in CLAUDE.md. Hooks guarantee execution; CLAUDE.md is guidance that can be deprioritized under context pressure.
 
 ---
 
@@ -553,7 +585,7 @@ This template provides items 2-9 out of the box. When using this template for a 
 - `CLAUDE.md` structure with `@` imports
 - `.claude/rules/_example.md` placeholder
 - `.claude/skills/closeout/` and `/update-template` skills
-- `.claude/agents/` (architecture-reviewer, test-writer)
+- `.claude/agents/` (architecture-reviewer, security-reviewer, test-writer)
 - `.claude/settings.json` with hook scaffolding
 - `docs/ARCHITECTURE.md` template
 - `docs/plans/` structure (TODO.md, BACKLOG.md, features/_TEMPLATE.md)

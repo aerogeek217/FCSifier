@@ -21,11 +21,16 @@ Perform end-of-session closeout for the current work.
 ## 3. Update Feature Plan (if applicable)
 - If work this session relates to a plan in docs/plans/features/, update its task checklist
 - Update the plan's Status field if appropriate (Draft -> In Progress, or In Progress -> Complete)
+- If a plan's status is now **Complete**:
+  - Delete any temporary/scratch files created during the plan's execution
+  - Ask the user whether they want to remove the plan file itself
 
 ## 4. Update docs/ARCHITECTURE.md (if structure changed)
-- If new modules, entities, services, or interfaces were added, update the Module Index
+- If new directories were added, update the File Map
+- If new entry points were created, update the Entry Points section
+- If new modules, entities, services, or interfaces were added, update Key Abstractions
 - If the dependency graph changed, update the Dependency Graph section
-- If new key abstractions were introduced, add them
+- If common navigation targets changed, update the Where to Find Things section
 
 ## 5. Commit
 - Stage all changes from this session (including any doc updates from steps 2-4)
