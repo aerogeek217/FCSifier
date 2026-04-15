@@ -1,8 +1,12 @@
-// Minimal RFC 4180-ish CSV parser. Handles quoted fields, escaped quotes, CRLF.
-export function parseCsv(text) {
-  const rows = [];
+export interface CsvResult {
+  headers: string[];
+  rows: Record<string, string>[];
+}
+
+export function parseCsv(text: string): CsvResult {
+  const rows: string[][] = [];
   let field = '';
-  let row = [];
+  let row: string[] = [];
   let inQuotes = false;
   let i = 0;
 

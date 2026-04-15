@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCsv } from '../src/data/csv.js';
+import { parseCsv } from '../src/data/csv.ts';
 
 test('parses simple CSV with headers', () => {
   const { headers, rows } = parseCsv('a,b,c\n1,2,3\n4,5,6\n');

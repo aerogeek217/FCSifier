@@ -9,10 +9,12 @@ Task-to-tool and tool-to-task cross-reference for CS-FSTD. Static webapp hosted 
 @docs/plans/TODO.md
 
 ## Build & Test Commands
-- Build: *(none — static site, served as-is)*
-- Test: `node --test "test/*.test.js"`
-- Run: `npx -y serve . -p 8080` *(or any static server; opens `index.html`)*
-- Single test: `node --test test/<file>.test.js`
+- Dev server: `npm run dev` *(Vite; hot reload)*
+- Build: `npm run build` *(emits `/dist/` + runs `scripts/check-runtime-deps.sh`)*
+- Preview built site: `npm run preview` *(serves `/dist/`)*
+- Test: `npm test` *(Node's built-in test runner via `tsx`, runs `test/*.test.ts`)*
+- Type/Svelte check: `npm run check`
+- Single test: `node --import tsx --test test/<file>.test.ts`
 
 ## Conventions
 See `.claude/rules/` — rules load automatically when editing matching paths.
@@ -25,8 +27,8 @@ See `.claude/rules/` — rules load automatically when editing matching paths.
 ## Constraints
 - **No runtime dependencies** — no npm packages loaded in the browser, no CDN scripts, no external fonts/icons. Vendor anything you need.
 - **No server or database** — all data is static files in `data/` (CSV or JSON), fetched client-side.
-- **GitHub Pages compatible** — site serves from repo root, no build step required. `.nojekyll` disables Jekyll processing.
-- **Dev dependencies allowed** — Node's built-in test runner and static file servers are fine; nothing ships to the browser.
+- **GitHub Pages compatible** — CI builds with Vite, then publishes `/dist/`. `.nojekyll` (now in `public/`, copied into `/dist/`) disables Jekyll processing.
+- **Dev dependencies allowed** — Vite, Svelte compiler, TypeScript, `tsx`, test runner. None of this ships to the browser; `scripts/check-runtime-deps.sh` enforces that.
 
 ## Git Workflow
 - Branches: `feature/description`, `fix/description`, `refactor/description` *(enforced by hook)*

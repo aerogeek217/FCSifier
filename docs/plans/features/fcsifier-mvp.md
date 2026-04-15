@@ -165,13 +165,13 @@ The canonical 14 feature codes above are the authoritative column order for `tas
 ## Tasks
 
 **Phase 0 — toolchain (one-shot; no product code yet)**
-- [ ] `npm init -y`; add dev deps (`svelte@^5`, `vite@^5`, `@sveltejs/vite-plugin-svelte`, `typescript`, `svelte-check`, `@tsconfig/svelte`, `tsx`)
-- [ ] Create `vite.config.ts`, `svelte.config.js`, `tsconfig.json`, minimal `src/app.ts` + `src/App.svelte` that render "hello"
-- [ ] Move `index.html` to Vite-entry form (references `/src/app.ts`); move `.nojekyll` into `public/`
-- [ ] Confirm `npm run dev` serves the page and `npm run build` produces a self-contained `/dist/`
-- [ ] Add `scripts/check-runtime-deps.sh` and wire it into the build flow
-- [ ] Update `CLAUDE.md` Build/Test/Run commands; add `dist/` to `.gitignore`
-- [ ] Port existing `src/data/csv.js` and its tests to TypeScript (baseline parity; no behaviour change)
+- [x] `npm init -y`; add dev deps (`svelte@^5`, `vite@^5`, `@sveltejs/vite-plugin-svelte`, `typescript`, `svelte-check`, `@tsconfig/svelte`, `tsx`)
+- [x] Create `vite.config.ts`, `svelte.config.js`, `tsconfig.json`, minimal `src/app.ts` + `src/App.svelte` that render "hello"
+- [x] Move `index.html` to Vite-entry form (references `/src/app.ts`); move `.nojekyll` into `public/`
+- [x] Confirm `npm run dev` serves the page and `npm run build` produces a self-contained `/dist/`
+- [x] Add `scripts/check-runtime-deps.sh` and wire it into the build flow
+- [x] Update `CLAUDE.md` Build/Test/Run commands; add `dist/` to `.gitignore`
+- [x] Port existing `src/data/csv.js` and its tests to TypeScript (baseline parity; no behaviour change)
 
 **Phase 1 — domain core (do this first after toolchain; everything else depends on it)**
 - [ ] Write `src/domain/fcs.ts` with `compare`, `rollup`, `authorizes`, `parseFcs`, `formatFcs`, plus the `Fidelity` (`"N"|"G"|"R"|"S"`), `Fcs`, `Feature`, and `TrainingLevel` (`"T"|"TP"`) types
