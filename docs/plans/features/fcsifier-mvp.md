@@ -19,7 +19,7 @@ Each fidelity level per feature is one of four tiers, conventionally:
 | `G`  | Generic        | Lowest positive — characteristic of an aircraft class or group |
 | `N`  | None           | Feature not installed/functional; if physically present, must not distract |
 
-**The 14 features are canonical, in this column order** (FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MOT, VIS, NAV, ATM, OST — see `docs/reference/easa-sources.md` for full names and categories).
+**The 14 features are canonical, in this column order** (FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MTN, VIS, NAV, ATM, OST — see `docs/reference/easa-sources.md` for full names and categories). Note: Appendix 3 GM1 Table 1 (line 520) has a one-off prose reference to `MOT`; the authoritative code is `MTN` per TOC, §2.10 heading, glossary (line 1311), and the Appendix 2 reporting templates (line 5041).
 
 Training providers identify, **per training task**, the minimum fidelity required for each feature. A device is authorised to deliver a task iff, **for every feature**, the device's fidelity ≥ the task's required fidelity (`S > R > G > N`). This is the matching rule.
 
@@ -29,13 +29,16 @@ For a *set* of tasks, the required FCS is the **per-feature maximum** across the
 
 - **Data model is feature-vectorised, not scalar.** Each task and each (hypothetical) FSTD has one fidelity per feature. We do *not* model a single "level" column. This is the whole point of the new framework and shapes everything downstream.
 - **Features are first-class data, not hard-coded.** `data/features.json` lists the 14 canonical ICAO 9625 features (id, name, short description) in the order above. Adding/renaming a feature is a data edit, not a code change.
-- **Mappings live in a wide CSV** (`data/task_fcs.csv`): columns are `task_id`, `level` (`T` or `TP` — introduction-only vs. training-to-proficiency), plus one column per feature using the canonical codes `FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MOT, VIS, NAV, ATM, OST`. Cell value is `S|R|G|N`. A task may have 0, 1, or 2 rows (both `T` and `TP`). This is the source of truth a human (or a script) maintains. The previous narrow `mappings.csv` is removed — it cannot express per-feature fidelity.
+- **Mappings live in a wide CSV** (`data/task_fcs.csv`): columns are `task_id`, `level` (`T` or `TP` — introduction-only vs. training-to-proficiency), plus one column per feature using the canonical codes `FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MTN, VIS, NAV, ATM, OST`. Cell value is `S|R|G|N` for real fidelity requirements, or `-` when the task is not performed in an FSTD (per Appendix 2 GM1). The loader maps an all-`-` row to a `null` FCS vector on the task, which surfaces as a separate "N/A" bucket in the UI. A task may have 0, 1, or 2 rows (both `T` and `TP`). This is the source of truth a human (or a script) maintains. The previous narrow `mappings.csv` is removed — it cannot express per-feature fidelity.
 - **Rollup is a one-line reduce** in `src/domain/fcs.ts`: per feature, `max(level)` with the order `N < G < R < S`. Same module exposes `authorizes(deviceFcs, taskFcs)` for the inverse query.
-- **Two pages, one data load.** `#/by-task` (pick tasks → required FCS + per-feature breakdown) and `#/by-device` (set device FCS sliders → list of authorised tasks). Both views consume the same in-memory dataset; no per-view fetches. Both honour a shared `T`/`TP` training-level toggle and an aircraft-category filter (aeroplane vs helicopter).
+- **Two pages, one data load.** `#/by-task` (pick tasks → required FCS + per-feature breakdown) and `#/by-device` (set device FCS sliders → list of authorised tasks). Both views consume the same in-memory dataset; no per-view fetches. Both honour a shared `T`/`TP` training-level toggle and an aircraft-category filter (`aeroplane` vs `helicopter` — the only two categories in the regulation).
+- **T and TP are independent datasets.** A task may have a `TP` row, a `T` row, both, or neither. The shared level toggle picks which set of rows is used. Tasks missing a row at the active level are **dropped from the rollup and flagged** as "no requirement defined at this level" — we never substitute the other level's row as a floor. By-device authorisation treats a missing row at the active level the same way (excluded from the authorised list, shown in a "no requirement at this level" bucket).
+- **URL grammar: everything inside `location.hash`.** Route + state co-located; the string after `#` is split on the first `?` into route path and query. Example: `#/by-device?fcs=S,S,R,G,N,G,R,R,R,R,S,R,G,N&level=TP&cat=aeroplane&tasks=t-014,t-022`. The query portion is parsed with `URLSearchParams`. `history.replaceState` on every state mutation so the back button steps between user navigations, not keystrokes.
 - **Framework: Svelte 5 + Vite + TypeScript.** Chosen because (a) Svelte compiles its framework code *into* the output bundle, so the deployed site has no runtime external dependencies — Vite emits a self-contained `/dist` that GitHub Pages serves directly; (b) Svelte's reactivity (runes: `$state`, `$derived`) is a natural fit for the editable FCS matrix and cross-view hash state; (c) TypeScript gives us types on the fidelity enum, the feature-vector shape, and the `authorizes`/`rollup` contracts — exactly where correctness matters. The build toolchain (Vite, Svelte compiler, TS, test runner) is dev-time only; nothing external ships to the browser.
 - **Data extraction is a separate, optional script** (`scripts/extract-easa.ts`) that parses the EASA appendix PDFs into the CSV/JSON shape. It runs at author time via `tsx`, not at user time. Manual maintenance of the CSV remains the supported path.
 - **Source citations on every task row.** Each task carries a `source` field (e.g., `"Opinion 01/2025 App.1, Table A-3, row 14"`) so reviewers can audit a mapping back to the regulation. This is essential for any tool people might rely on for compliance discussions.
-- **No login, no persistence.** Selections live in the URL hash so views are shareable. An FCS configuration encodes as `?fcs=S,S,R,G,...` in feature order; a task selection as `?tasks=t-014,t-022`.
+- **Device catalogue: canned presets + user-defined.** `data/devices.json` ships a small curated list of example FSTDs (id, name, vendor, aircraft_category, FCS vector, source). The by-device view has a "Load preset" dropdown that populates the editable matrix from the selected preset, and a "Save as preset" action that stores user-defined devices in `localStorage` only (never written to disk, never synced). The legacy `tools.json` is still deleted — it encodes the old single-level model and is schema-incompatible.
+- **No login, no server persistence.** Route + selection state live in the URL hash so views are shareable (grammar above). User-defined device presets are the only localStorage usage.
 
 ## Runtime Dependency Audit (compile-time vs. runtime)
 
@@ -66,7 +69,7 @@ data/features.json
     { "code": "OGE", "name": "Out-of-Ground-Effect Aerodynamics", "doc9625_ref": "..." },
     { "code": "SND", "name": "Sound",              "doc9625_ref": "..." },
     { "code": "VIB", "name": "Vibration",          "doc9625_ref": "..." },
-    { "code": "MOT", "name": "Motion",             "doc9625_ref": "..." },
+    { "code": "MTN", "name": "Motion",             "doc9625_ref": "..." },
     { "code": "VIS", "name": "Visual",             "doc9625_ref": "..." },
     { "code": "NAV", "name": "Navigation",         "doc9625_ref": "..." },
     { "code": "ATM", "name": "Atmosphere / Environment", "doc9625_ref": "..." },
@@ -74,19 +77,42 @@ data/features.json
   ]
 
 data/tasks.csv
-  id, name, phase, aircraft_category, aircraft_class, section, source, notes
-  t-014, "Engine failure after V1", takeoff, aeroplane, multi-engine-jet, "App.2 §3.4", "Opinion 01/2025 App.2 line 312", ""
+  id, name, phase, aircraft_category, section, source, notes
+  t-014, "Engine failure after V1", takeoff, aeroplane, "App.2 §3.4", "Opinion 01/2025 App.2 line 312", ""
+
+  # aircraft_category ∈ {aeroplane, helicopter} — matches how the CS is organised.
+  # No aircraft_class column; the regulation's matrices apply to all in-scope classes within a category.
 
 data/task_fcs.csv
-  task_id, level, FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MOT, VIS, NAV, ATM, OST
+  task_id, level, FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MTN, VIS, NAV, ATM, OST
   t-014,   TP,    S,   S,   R,   S,   G,   R,   S,   R,   R,   R,   S,   R,   R,   G
   t-014,   T,     R,   R,   R,   R,   G,   G,   R,   G,   G,   G,   R,   G,   G,   G
+  t-001,   TP,    -,   -,   -,   -,   -,   -,   -,   -,   -,   -,   -,   -,   -,   -
+  t-001,   T,     -,   -,   -,   -,   -,   -,   -,   -,   -,   -,   -,   -,   -,   -
 
   # 'level' is T (introduction only) or TP (training to proficiency).
-  # A task may have both rows, one row, or neither (see "not performed in an FSTD" tasks).
+  # Cell value: S|R|G|N for a real fidelity requirement, or '-' when the task is not performed in an FSTD.
+  # An all-'-' row loads as a null FCS vector on the task (separate "N/A" bucket in the UI).
+  # A task may have both rows, one row, or neither.
 
 data/fidelity.json    # the ordered enum, single source of truth
   ["N", "G", "R", "S"]
+  # '-' in the raw CSV is NOT a fidelity level — it's the "task not performed in FSTD" marker,
+  # handled by the loader (row → null) rather than by the ordering.
+
+data/devices.json     # canned FSTD presets; users may add more via localStorage
+  [
+    {
+      "id": "example-a320-ffs",
+      "name": "Example A320 FFS (illustrative)",
+      "vendor": "",
+      "aircraft_category": "aeroplane",
+      "fcs": { "FDK": "S", "CLH": "S", "CLO": "S", "SYS": "S", "GND": "S",
+               "IGE": "S", "OGE": "S", "SND": "S", "VIB": "R", "MTN": "S",
+               "VIS": "S", "NAV": "S", "ATM": "R", "OST": "R" },
+      "source": "illustrative — not a real device"
+    }
+  ]
 ```
 
 The canonical 14 feature codes above are the authoritative column order for `task_fcs.csv` and the encoding order for the hash-encoded `?fcs=` query string.
@@ -101,8 +127,9 @@ The canonical 14 feature codes above are the authoritative column order for `tas
 | `data/fidelity.json`         | Create | Ordered fidelity enum |
 | `data/tasks.csv`             | Replace | Task catalogue (no fidelity columns) |
 | `data/task_fcs.csv`          | Create | Wide table of required fidelity per task per feature |
+| `data/devices.json`          | Create | Canned FSTD presets (id, name, vendor, category, FCS vector, source) |
 | `data/mappings.csv`          | Delete | Superseded by `task_fcs.csv` |
-| `data/tools.json`            | Delete | Superseded by user-input device FCS |
+| `data/tools.json`            | Delete | Schema-incompatible; replaced by `devices.json` + user localStorage |
 | `package.json`                | Create | Dev deps: `svelte`, `vite`, `@sveltejs/vite-plugin-svelte`, `typescript`, `svelte-check`, `@tsconfig/svelte`, `tsx` (for the extraction script). Scripts: `dev`, `build`, `preview`, `test`, `check`. |
 | `vite.config.ts`              | Create | Svelte plugin; `base: './'` for GH Pages path safety; copy `data/` into `/dist/data/` via `publicDir`. |
 | `tsconfig.json`               | Create | Extends `@tsconfig/svelte`; strict mode on. |
@@ -113,22 +140,17 @@ The canonical 14 feature codes above are the authoritative column order for `tas
 | `src/data/loader.ts`          | Rewrite | Load features + tasks + task_fcs together; typed return shape. |
 | `src/data/csv.ts`             | Port    | Existing CSV parser ported to TypeScript; tests kept. |
 | `src/routes/ByTask.svelte`    | Create | "Pick tasks → required FCS" view. |
-| `src/routes/ByDevice.svelte`  | Create | "Set device FCS → list authorised tasks" view. |
+| `src/routes/ByDevice.svelte`  | Create | "Set device FCS → list authorised tasks" view; hosts device preset controls. |
 | `src/lib/FcsMatrix.svelte`    | Create | Reusable feature-vector widget; `mode: 'read' \| 'edit'` prop. |
-| `src/lib/router.ts`           | Create | Hash router returning a `$state`-backed current route; parses `?tasks=` / `?fcs=` params. |
-| `src/lib/state.svelte.ts`     | Create | Shared app state (selected tasks, device FCS) using Svelte 5 runes. |
+| `src/lib/DevicePresets.svelte`| Create | Load/save device presets; reads `data/devices.json` + `localStorage`. |
+| `src/lib/router.ts`           | Create | Hash router; splits `location.hash` on first `?` → route + `URLSearchParams`; parses `?fcs=` / `?tasks=` / `?level=` / `?cat=`. Uses `history.replaceState` on mutations. |
+| `src/lib/state.svelte.ts`     | Create | Shared app state (selected tasks, device FCS, active `T`/`TP` level, aircraft-category filter) using Svelte 5 runes. |
 | `src/main.js`                 | Delete  | Replaced by `src/app.ts`. |
 | `src/ui/`                     | Delete  | Replaced by `src/routes/` and `src/lib/`. |
 | `index.html`                  | Modify  | Moves to repo root as Vite entry; references `/src/app.ts`. |
 | `styles/main.css`             | Modify  | Matrix table + dropdown styling; imported once from `App.svelte`. |
 | `public/.nojekyll`            | Move    | From repo root into `public/` so Vite copies it to `/dist/`. |
-| `data/features.json`          | Create  | ICAO 9625 feature list. |
-| `data/fidelity.json`          | Create  | Ordered fidelity enum. |
-| `data/tasks.csv`              | Replace | Task catalogue (no fidelity columns). |
-| `data/task_fcs.csv`           | Create  | Wide table of required fidelity per task per feature. |
-| `data/mappings.csv`           | Delete  | Superseded by `task_fcs.csv`. |
-| `data/tools.json`             | Delete  | Superseded by user-input device FCS. |
-| `scripts/extract-easa.ts`     | Create  | (Optional) PDF → CSV extraction; run via `tsx` by maintainer. |
+| `scripts/extract-easa.ts`     | Create  | PDF → CSV extractor (text already in `docs/EASA/extracted/`); run via `tsx` by maintainer in Phase 2 to seed `task_fcs.csv`. Output is human-reviewed, not auto-committed. |
 | `scripts/check-runtime-deps.sh` | Create | Greps `dist/` for `http(s)://` references — fails release if any exist. |
 | `test/fcs.test.ts`            | Create  | `compare`, `rollup`, `authorizes` (edges: all `N`, ties, missing feature). |
 | `test/csv.test.ts`            | Port    | Existing CSV parser tests, ported to TS. |
@@ -157,32 +179,35 @@ The canonical 14 feature codes above are the authoritative column order for `tas
 - [ ] Add `data/features.json` (14 canonical codes in order) and `data/fidelity.json` (`["N","G","R","S"]`)
 
 **Phase 2 — data plumbing**
-- [ ] Replace `data/tasks.csv` with the new schema (include `aircraft_category: aeroplane|helicopter`; allow `null` FCS vector for tasks not performed in FSTD per Appendix 2 GM1)
-- [ ] Create `data/task_fcs.csv` with 16 columns: `task_id`, `level` (`T` or `TP`), and the 14 canonical feature codes in order (FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MOT, VIS, NAV, ATM, OST)
-- [ ] Seed ≈10 aeroplane + ≈5 helicopter tasks for UX validation (covering both `T` and `TP` rows, and at least one null-FCS "not in FSTD" task)
-- [ ] Rewrite `src/data/loader.ts` to load + join the three files into a typed `{ features, tasks }` where each task has `{ T?: Fcs, TP?: Fcs }` (either may be absent)
-- [ ] Loader tests against new fixtures in `test/fixtures/`
+- [ ] Replace `data/tasks.csv` with the new schema (`aircraft_category: aeroplane|helicopter` only; no `aircraft_class`)
+- [ ] Create `data/task_fcs.csv` with 16 columns: `task_id`, `level` (`T` or `TP`), and the 14 canonical feature codes in order (FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MTN, VIS, NAV, ATM, OST); cell value is `S|R|G|N` or `-` for "not performed in FSTD"
+- [ ] Write `scripts/extract-easa.ts` against `docs/EASA/extracted/appendix_2….txt` (aeroplane lines 234–557, helicopter lines 558–860); emit a draft `task_fcs.csv` + `tasks.csv`, diff against any existing file, **human reviews before commit** (not auto-committed)
+- [ ] Run the extractor; seed the full set (not a sample) so UX validation is done against real data. Keep at least one null-FCS (`-`-row) task visible (§1.1 Performance calculation) for the N/A bucket
+- [ ] Create `data/devices.json` with ~3 illustrative presets covering different FCS profiles (one high-fidelity aeroplane FFS, one mid-tier aeroplane FTD, one helicopter FFS); mark each `source: "illustrative"` — real-device data is out of scope for MVP
+- [ ] Rewrite `src/data/loader.ts` to load + join `features.json`, `tasks.csv`, `task_fcs.csv`, `devices.json` into a typed `{ features, tasks, devices }` where each task has `{ T?: Fcs | null, TP?: Fcs | null }` (absent = no row at that level; `null` = row exists but all `-` → task not performed in FSTD)
+- [ ] Loader tests against new fixtures in `test/fixtures/` covering: missing row, all-`-` row, mixed valid row, unknown fidelity code rejection
 
 **Phase 3 — UI (Svelte components)**
-- [ ] `src/lib/state.svelte.ts` — shared `$state` for selected tasks, device FCS, active training level (`T` vs `TP`), and aircraft category filter; `$derived` rollup / authorised-tasks lists
-- [ ] `src/lib/router.ts` — hash router that syncs `location.hash` with the shared state (bidirectional); encodes `?level=TP` and `?cat=aeroplane`
+- [ ] `src/lib/state.svelte.ts` — shared `$state` for selected tasks, device FCS, active training level (`T` vs `TP`), and aircraft category filter; `$derived` rollup / authorised-tasks / N/A-bucket / "no-requirement-at-this-level" bucket
+- [ ] `src/lib/router.ts` — hash router that splits `location.hash` on the first `?` into route + `URLSearchParams`; bidirectional sync with shared state; `history.replaceState` on mutations; encodes `?fcs=` / `?tasks=` / `?level=` / `?cat=`
 - [ ] `src/lib/FcsMatrix.svelte` — read-only and editable modes via prop; dropdown-per-feature in edit mode; column order driven by `features.json`
-- [ ] `src/routes/ByTask.svelte` — multi-select task list (left), required-FCS matrix (right), per-feature "driving task" annotation, T/TP toggle
-- [ ] `src/routes/ByDevice.svelte` — editable FCS matrix (top), authorised-task list with filter chips (bottom), T/TP toggle, aircraft-category filter
+- [ ] `src/lib/DevicePresets.svelte` — "Load preset" dropdown reading `data/devices.json` merged with `localStorage`-stored user presets; "Save current as preset" action writing only to `localStorage`
+- [ ] `src/routes/ByTask.svelte` — multi-select task list (left), required-FCS matrix (right), per-feature "driving task" annotation, T/TP toggle, dropped-task panel listing any selected tasks with no row at the active level or a null FCS (N/A)
+- [ ] `src/routes/ByDevice.svelte` — editable FCS matrix (top) with preset controls, authorised-task list with filter chips (bottom), T/TP toggle, aircraft-category filter, separate N/A and "no-requirement-at-this-level" buckets
 - [ ] `src/App.svelte` — tab nav, mounts the current route
-- [ ] Verify shareable URLs: open `#/by-device?fcs=S,S,R,G,G,R,S,R,R,R,S,R,R,G&level=TP&cat=aeroplane` in a fresh tab and confirm state restores
+- [ ] Verify shareable URLs: open `#/by-device?fcs=S,S,R,G,N,G,R,R,R,R,S,R,G,N&level=TP&cat=aeroplane` in a fresh tab and confirm state restores
 
-**Phase 4 — extraction, CI, docs**
-- [ ] `scripts/extract-easa.ts` — parse Appendix 2 matrices (aeroplane: lines 234–557; helicopter: lines 558–860) from the text extraction, emit `task_fcs.csv` for human review (not auto-committed)
+**Phase 4 — CI, docs**
 - [ ] `.github/workflows/pages.yml` — build, run `check-runtime-deps.sh`, deploy `/dist` to GitHub Pages
-- [ ] Update `docs/ARCHITECTURE.md` (file map, dependency graph, "where to find things" rows)
-- [ ] Add two ADRs to `docs/DECISIONS.md`: vectorised FCS model with `T`/`TP` dimension; Svelte 5 + Vite toolchain choice
+- [ ] Update `docs/ARCHITECTURE.md` (file map, dependency graph, "where to find things" rows; add devices.json and preset flow)
+- [ ] Add ADRs to `docs/DECISIONS.md`: (1) vectorised FCS model with `T`/`TP` dimension; (2) Svelte 5 + Vite toolchain choice; (3) `MTN` vs `MOT` — Appendix 3 GM1 Table 1 uses `MOT` in prose but all structural/normative references use `MTN`, we follow the structural usage
+- [ ] Update `docs/reference/easa-sources.md`: correct `MOT` → `MTN`, note the GM1 Table 1 discrepancy, correct the "matrix columns use short codes" claim (matrix columns use long names; codes come from Appendix 3)
 
 ## Resolved from Source PDFs (2026-04-14)
 
 The EASA PDFs dropped into `docs/EASA/` have been mapped end-to-end — details in `docs/reference/easa-sources.md`:
 
-- **Feature list confirmed:** 14 features (FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MOT, VIS, NAV, ATM, OST) in that exact column order from Appendix 2's training-matrix header and `CS FSTD.GEN.005` / Appendix 3 Table 1.
+- **Feature list confirmed:** 14 features (FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MTN, VIS, NAV, ATM, OST) in that exact column order from Appendix 2's training-matrix header and `CS FSTD.GEN.005` / Appendix 3 Table 1.
 - **Fidelity levels confirmed:** `S > R > G > N`. The earlier working guess of `–` for the "not used" tier was wrong — the regulation uses `N` (None). Update `data/fidelity.json` to `["N","G","R","S"]`.
 - **Training matrices located:** Appendix 2 holds two complete matrices — aeroplane (`extracted/appendix_2…txt` lines 234–557, ≈80 tasks across §§1, 2, 3, 3.4, 3.8) and helicopter (lines 558–860, similar structure). Each task has `TP` (Training to Proficiency) and `T` (Training — introduction only) rows; each row is 14 S/R/G/N values.
 - **Rollup is regulation-defined** ("per-feature maximum across selected tasks", Appendix 2 AMC guidance ~line 3394). The plan's `rollup` function is correct.
