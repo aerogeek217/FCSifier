@@ -93,7 +93,7 @@ CS-FSTD/
 
 | Entry Point | Command / File | Purpose |
 |-------------|----------------|---------|
-| Dev server | `npm run dev` | Vite dev server; serves `index.html`, HMR for `.svelte`/`.ts` |
+| Dev server | `npm run dev` (or double-click `dev.bat`) | Vite dev server; serves `index.html`, HMR for `.svelte`/`.ts` |
 | Build | `npm run build` | `vite build` + `scripts/check-runtime-deps.sh`; emits `/dist/` |
 | Preview build | `npm run preview` | Serves `/dist/` as a static site |
 | Tests | `npm test` | `node --import tsx --test "test/*.test.ts"` |
