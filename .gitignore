@@ -21,3 +21,7 @@ desktop.ini
 node_modules/
 npm-debug.log
 .env
+
+# EASA source PDFs — too large for git history; extracted text files under
+# docs/EASA/extracted/ are tracked instead. Download PDFs manually if needed.
+docs/EASA/*.pdf
