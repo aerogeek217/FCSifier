@@ -174,9 +174,9 @@ The canonical 14 feature codes above are the authoritative column order for `tas
 - [x] Port existing `src/data/csv.js` and its tests to TypeScript (baseline parity; no behaviour change)
 
 **Phase 1 — domain core (do this first after toolchain; everything else depends on it)**
-- [ ] Write `src/domain/fcs.ts` with `compare`, `rollup`, `authorizes`, `parseFcs`, `formatFcs`, plus the `Fidelity` (`"N"|"G"|"R"|"S"`), `Fcs`, `Feature`, and `TrainingLevel` (`"T"|"TP"`) types
-- [ ] Write `test/fcs.test.ts` covering: ordering (`N < G < R < S`), rollup over empty/singleton/many, authorisation true/false at each tier, missing-feature handling, round-trip parse/format, rejection of unknown fidelity codes
-- [ ] Add `data/features.json` (14 canonical codes in order) and `data/fidelity.json` (`["N","G","R","S"]`)
+- [x] Write `src/domain/fcs.ts` with `compare`, `rollup`, `authorizes`, `parseFcs`, `formatFcs`, plus the `Fidelity` (`"N"|"G"|"R"|"S"`), `Fcs`, `Feature`, and `TrainingLevel` (`"T"|"TP"`) types
+- [x] Write `test/fcs.test.ts` covering: ordering (`N < G < R < S`), rollup over empty/singleton/many, authorisation true/false at each tier, missing-feature handling, round-trip parse/format, rejection of unknown fidelity codes
+- [x] Add `data/features.json` (14 canonical codes in order) and `data/fidelity.json` (`["N","G","R","S"]`)
 
 **Phase 2 — data plumbing**
 - [ ] Replace `data/tasks.csv` with the new schema (`aircraft_category: aeroplane|helicopter` only; no `aircraft_class`)

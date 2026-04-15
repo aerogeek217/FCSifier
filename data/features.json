@@ -1,0 +1,16 @@
+[
+  { "code": "FDK", "name": "Flight Deck Layout And Structure",     "category": "aircraft_simulation" },
+  { "code": "CLH", "name": "Flight Control Forces And Hardware",   "category": "aircraft_simulation" },
+  { "code": "CLO", "name": "Flight Control Systems Operation",     "category": "aircraft_simulation" },
+  { "code": "SYS", "name": "Aircraft Systems",                     "category": "aircraft_simulation" },
+  { "code": "GND", "name": "Performance And Handling On Ground",   "category": "aircraft_simulation" },
+  { "code": "IGE", "name": "Performance And Handling In Ground Effect",     "category": "aircraft_simulation" },
+  { "code": "OGE", "name": "Performance And Handling Out Of Ground Effect", "category": "aircraft_simulation" },
+  { "code": "SND", "name": "Sound Cueing",       "category": "cueing_simulation" },
+  { "code": "VIB", "name": "Vibration Cueing",   "category": "cueing_simulation" },
+  { "code": "MTN", "name": "Motion Cueing",      "category": "cueing_simulation" },
+  { "code": "VIS", "name": "Visual Cueing",      "category": "cueing_simulation" },
+  { "code": "NAV", "name": "Navigation",                "category": "environment_simulation" },
+  { "code": "ATM", "name": "Atmosphere And Weather",    "category": "environment_simulation" },
+  { "code": "OST", "name": "Operating Sites And Terrain", "category": "environment_simulation" }
+]

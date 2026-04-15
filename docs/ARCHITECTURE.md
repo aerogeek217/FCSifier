@@ -1,9 +1,11 @@
 # Architecture Overview
 
-> **Status after Phase 0 (toolchain):** Svelte 5 + Vite + TypeScript scaffold is in
-> place. The Svelte app renders a placeholder; the vectorised FCS data model and
-> loader land in Phase 2, and the two product views (by-task / by-device) in Phase 3.
-> See `docs/plans/features/fcsifier-mvp.md` for the phased plan.
+> **Status after Phase 1 (domain core):** Svelte 5 + Vite + TypeScript scaffold is in
+> place; the pure FCS domain layer (`src/domain/fcs.ts`) and the canonical feature /
+> fidelity enums (`data/features.json`, `data/fidelity.json`) are done. The Svelte
+> app still renders a placeholder; the task/device loader and mapping data land in
+> Phase 2, and the two product views (by-task / by-device) in Phase 3. See
+> `docs/plans/features/fcsifier-mvp.md` for the phased plan.
 
 ## File Map
 
@@ -21,16 +23,23 @@ CS-FSTD/
     App.svelte           # Top-level component (currently placeholder)
     data/
       csv.ts             # Minimal CSV parser (RFC 4180-ish); TS port of earlier csv.js
+    domain/
+      fcs.ts             # Pure FCS domain: Fidelity/Fcs/Feature/TrainingLevel types,
+                         #   compare / rollup / authorizes / parseFcs / formatFcs
   styles/
     main.css             # Global styles (not yet imported; Phase 3)
   data/
-    tasks.csv            # Legacy scaffold data — replaced in Phase 2 by
-    tools.json           # the vectorised FCS schema (features.json, task_fcs.csv,
-    mappings.csv         # devices.json). Not wired to anything right now.
+    features.json        # Canonical 14 ICAO 9625 features, canonical column order
+    fidelity.json        # Ordered fidelity enum: ["N","G","R","S"]
+    tasks.csv            # Legacy scaffold data — replaced in Phase 2 by the
+    tools.json           #   vectorised FCS schema (task_fcs.csv + devices.json).
+    mappings.csv         #   Not wired to anything right now.
   scripts/
     check-runtime-deps.sh  # Greps dist/ for http(s):// refs; build fails if any leak in
   test/
     csv.test.ts          # CSV parser tests (6 cases)
+    fcs.test.ts          # FCS domain tests (29 cases: compare, rollup, authorizes,
+                         #   parseFcs/formatFcs, canonical-enum guards)
   dist/                  # Vite build output (gitignored)
   docs/
     plans/               # Task tracking and feature plans
@@ -59,8 +68,11 @@ index.html --> src/app.ts                      (Vite rewrites at build/dev time)
 src/app.ts --> svelte (mount)
 src/app.ts --> src/App.svelte
 
+src/domain/fcs.ts                              (no imports — pure, framework-free)
+
 # Not yet wired (Phase 2+):
 #   src/data/loader.ts --> src/data/csv.ts
+#   src/data/loader.ts --> src/domain/fcs.ts   (types + isFidelity guard)
 #   src/data/loader.ts --> data/*.{csv,json}   (fetched at runtime)
 #   src/routes/*.svelte --> src/lib/*.svelte + src/domain/fcs.ts
 ```
@@ -75,7 +87,9 @@ by Vite; `check-runtime-deps.sh` enforces that no `http(s)://` reference lands i
 |-------------|----------|---------|
 | `parseCsv()` | `src/data/csv.ts` | Parses CSV text into `{headers, rows}` |
 | `App` | `src/App.svelte` | Placeholder root; replaced in Phase 3 by tab nav + routed view |
-| *(Phase 1)* `compare`, `rollup`, `authorizes` | `src/domain/fcs.ts` | FCS vector algebra: tier ordering, per-feature max, per-feature ≥ check |
+| `Fidelity`, `Fcs`, `Feature`, `TrainingLevel` | `src/domain/fcs.ts` | Core types: tiered fidelity enum, per-feature vector, feature row shape, T/TP toggle |
+| `compare`, `rollup`, `authorizes` | `src/domain/fcs.ts` | FCS vector algebra: tier ordering (`N<G<R<S`), per-feature max, per-feature ≥ check |
+| `parseFcs`, `formatFcs`, `isFidelity` | `src/domain/fcs.ts` | Hash-query codec for `?fcs=S,S,R,…` and runtime validation |
 | *(Phase 2)* `loadDataset()` | `src/data/loader.ts` | Loads and joins `features.json`, `tasks.csv`, `task_fcs.csv`, `devices.json` |
 | *(Phase 3)* `FcsMatrix`, `DevicePresets`, hash router | `src/lib/` | FCS vector widget, preset picker, hash-encoded state |
 
@@ -99,8 +113,9 @@ by Vite; `check-runtime-deps.sh` enforces that no `http(s)://` reference lands i
 | Change TS strictness or path aliases | `tsconfig.json` |
 | Static assets that must ship as-is | `public/` (copied verbatim to `/dist/`) |
 | Replace the placeholder UI | `src/App.svelte` + (Phase 3) `src/routes/`, `src/lib/` |
-| Add / edit FCS domain logic | *(Phase 1)* `src/domain/fcs.ts` |
-| Add or edit task / device data | *(Phase 2)* `data/{features.json, tasks.csv, task_fcs.csv, devices.json}` |
+| Add / edit FCS domain logic | `src/domain/fcs.ts` (+ `test/fcs.test.ts`) |
+| Change the canonical feature list or fidelity order | `data/features.json` / `data/fidelity.json` |
+| Add or edit task / device data | *(Phase 2)* `data/{tasks.csv, task_fcs.csv, devices.json}` |
 | Deploy the site | *(Phase 4)* `.github/workflows/pages.yml` will build + publish `/dist/` |
 
 ---
