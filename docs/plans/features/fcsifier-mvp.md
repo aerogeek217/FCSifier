@@ -188,14 +188,14 @@ The canonical 14 feature codes above are the authoritative column order for `tas
 - [x] Loader tests against new fixtures in `test/fixtures/` covering: missing row, all-`-` row, mixed valid row, unknown fidelity code rejection
 
 **Phase 3 — UI (Svelte components)**
-- [ ] `src/lib/state.svelte.ts` — shared `$state` for selected tasks, device FCS, active training level (`T` vs `TP`), and aircraft category filter; `$derived` rollup / authorised-tasks / N/A-bucket / "no-requirement-at-this-level" bucket
-- [ ] `src/lib/router.ts` — hash router that splits `location.hash` on the first `?` into route + `URLSearchParams`; bidirectional sync with shared state; `history.replaceState` on mutations; encodes `?fcs=` / `?tasks=` / `?level=` / `?cat=`
-- [ ] `src/lib/FcsMatrix.svelte` — read-only and editable modes via prop; dropdown-per-feature in edit mode; column order driven by `features.json`
-- [ ] `src/lib/DevicePresets.svelte` — "Load preset" dropdown reading `data/devices.json` merged with `localStorage`-stored user presets; "Save current as preset" action writing only to `localStorage`
-- [ ] `src/routes/ByTask.svelte` — multi-select task list (left), required-FCS matrix (right), per-feature "driving task" annotation, T/TP toggle, dropped-task panel listing any selected tasks with no row at the active level or a null FCS (N/A)
-- [ ] `src/routes/ByDevice.svelte` — editable FCS matrix (top) with preset controls, authorised-task list with filter chips (bottom), T/TP toggle, aircraft-category filter, separate N/A and "no-requirement-at-this-level" buckets
-- [ ] `src/App.svelte` — tab nav, mounts the current route
-- [ ] Verify shareable URLs: open `#/by-device?fcs=S,S,R,G,N,G,R,R,R,R,S,R,G,N&level=TP&cat=aeroplane` in a fresh tab and confirm state restores
+- [x] `src/lib/state.svelte.ts` — shared `$state` for selected tasks, device FCS, active training level (`T` vs `TP`), and aircraft category filter; `$derived` rollup / authorised-tasks / N/A-bucket / "no-requirement-at-this-level" bucket
+- [x] `src/lib/router.svelte.ts` (`.svelte.ts` extension so runes compile) — hash router that splits `location.hash` on the first `?` into route + `URLSearchParams`; bidirectional sync with shared state via `$effect.root`; `history.replaceState` on mutations; encodes `?fcs=` / `?tasks=` / `?level=` / `?cat=`
+- [x] `src/lib/FcsMatrix.svelte` — read-only and editable modes via prop; dropdown-per-feature in edit mode; column order driven by `features.json`; optional driving-task annotation row
+- [x] `src/lib/DevicePresets.svelte` — "Load preset" dropdown reading `data/devices.json` merged with `localStorage`-stored user presets; "Save current as preset" action writing only to `localStorage`; delete action for user presets
+- [x] `src/routes/ByTask.svelte` — searchable multi-select task list (left), required-FCS matrix (right), per-feature "driving task" annotation, dropped-task panel listing any selected tasks with no row at the active level or a null FCS (N/A)
+- [x] `src/routes/ByDevice.svelte` — editable FCS matrix (top) with preset controls, authorised-task list (bottom), separate Not-Authorised, N/A and "no-requirement-at-this-level" buckets
+- [x] `src/App.svelte` — tab nav, shared T/TP + aircraft-category controls, dataset loader, route host
+- [ ] Browser smoke-test: open `#/by-device?fcs=S,S,R,G,N,G,R,R,R,R,S,R,G,N&level=TP&cat=aeroplane` in a fresh tab and confirm state restores (deferred — requires a human at a browser)
 
 **Phase 4 — CI, docs**
 - [ ] `.github/workflows/pages.yml` — build, run `check-runtime-deps.sh`, deploy `/dist` to GitHub Pages
