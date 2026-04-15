@@ -1,16 +1,19 @@
 # Architecture Overview
 
-> **Status after Phase 3 (UI):** The full stack is wired. Shared runes state
-> (`src/lib/state.svelte.ts`) drives a hash router (`src/lib/router.svelte.ts`),
-> an `FcsMatrix` widget, a `DevicePresets` picker (built-in + `localStorage`),
-> and the two product views (`src/routes/ByTask.svelte`, `ByDevice.svelte`).
-> `App.svelte` hosts the tab nav plus shared T/TP and aircraft-category
-> controls, and loads the dataset once on mount. `npm run check`, `npm test`
-> (49/49), and `npm run build` are all green; `check-runtime-deps.sh` confirms
-> the built `/dist/` pulls no `http(s)://` references. **Not yet verified:**
-> end-to-end browser smoke-test of tab nav, preset load/save, and shareable
-> URL round-trip. Phase 4 (GitHub Pages CI, ADRs) is the remaining work. See
-> `docs/plans/features/fcsifier-mvp.md` for the phased plan.
+> **Status after Phase 4 (CI + docs):** The full MVP stack is wired and
+> deployable. Shared runes state (`src/lib/state.svelte.ts`) drives a hash
+> router (`src/lib/router.svelte.ts`), an `FcsMatrix` widget, a
+> `DevicePresets` picker (built-in + `localStorage`), and the two product
+> views (`src/routes/ByTask.svelte`, `ByDevice.svelte`). `App.svelte` hosts
+> the tab nav plus shared T/TP and aircraft-category controls, and loads
+> the dataset once on mount. `.github/workflows/pages.yml` runs
+> `npm run check`, `npm test` (49/49), and `npm run build` (which invokes
+> `check-runtime-deps.sh`) on every push to `main`, then publishes `/dist`
+> to GitHub Pages. **Not yet verified:** end-to-end browser smoke-test of
+> tab nav, preset load/save, and shareable URL round-trip; first live
+> Pages deploy. See `docs/plans/features/fcsifier-mvp.md` for the phased
+> plan and `docs/DECISIONS.md` for the ADRs behind the data model,
+> toolchain, and URL grammar choices.
 
 ## File Map
 
@@ -86,6 +89,11 @@ CS-FSTD/
     WORKFLOW.md          # End-to-end development workflow reference
     EASA/                # Source PDFs (PDFs gitignored) + extracted/ text
     reference/           # Source-to-model mapping notes (easa-sources.md)
+  .github/
+    workflows/
+      pages.yml          # CI: npm ci → check → test → build (runs
+                         #   check-runtime-deps.sh) → deploy /dist to
+                         #   GitHub Pages on push to main.
   .claude/               # Claude Code config (skills, agents, rules, hooks)
 ```
 
@@ -98,6 +106,7 @@ CS-FSTD/
 | Preview build | `npm run preview` | Serves `/dist/` as a static site |
 | Tests | `npm test` | `node --import tsx --test "test/*.test.ts"` |
 | Type / Svelte check | `npm run check` | `svelte-check --tsconfig ./tsconfig.json` |
+| Deploy | Push to `main` | `.github/workflows/pages.yml`: check → test → build → publish `/dist` to GitHub Pages |
 
 ## Dependency Graph
 
@@ -179,7 +188,7 @@ by Vite; `check-runtime-deps.sh` enforces that no `http(s)://` reference lands i
 | Add or edit task / device data | `data/{tasks.csv, task_fcs.csv, devices.json}` |
 | Re-seed tasks.csv / task_fcs.csv from the EASA PDFs | `node --import tsx scripts/extract-easa.ts` (output is human-reviewed; header lists tasks known to need hand-fixup) |
 | Change how tasks + devices are joined | `src/data/loader.ts` (+ `test/loader.test.ts`) |
-| Deploy the site | *(Phase 4)* `.github/workflows/pages.yml` will build + publish `/dist/` |
+| Change the deploy pipeline or enable/disable a CI step | `.github/workflows/pages.yml` |
 
 ---
 

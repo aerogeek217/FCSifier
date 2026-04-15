@@ -198,10 +198,10 @@ The canonical 14 feature codes above are the authoritative column order for `tas
 - [ ] Browser smoke-test: open `#/by-device?fcs=S,S,R,G,N,G,R,R,R,R,S,R,G,N&level=TP&cat=aeroplane` in a fresh tab and confirm state restores (deferred — requires a human at a browser)
 
 **Phase 4 — CI, docs**
-- [ ] `.github/workflows/pages.yml` — build, run `check-runtime-deps.sh`, deploy `/dist` to GitHub Pages
-- [ ] Update `docs/ARCHITECTURE.md` (file map, dependency graph, "where to find things" rows; add devices.json and preset flow)
-- [ ] Add ADRs to `docs/DECISIONS.md`: (1) vectorised FCS model with `T`/`TP` dimension; (2) Svelte 5 + Vite toolchain choice; (3) `MTN` vs `MOT` — Appendix 3 GM1 Table 1 uses `MOT` in prose but all structural/normative references use `MTN`, we follow the structural usage
-- [ ] Update `docs/reference/easa-sources.md`: correct `MOT` → `MTN`, note the GM1 Table 1 discrepancy, correct the "matrix columns use short codes" claim (matrix columns use long names; codes come from Appendix 3)
+- [x] `.github/workflows/pages.yml` — build, run `check-runtime-deps.sh`, deploy `/dist` to GitHub Pages
+- [x] Update `docs/ARCHITECTURE.md` (file map, dependency graph, "where to find things" rows; add devices.json and preset flow)
+- [x] Add ADRs to `docs/DECISIONS.md`: vectorised FCS model (ADR-007), Svelte 5 + Vite (ADR-005), `MTN` vs `MOT` (ADR-001), plus T/TP independence (ADR-003), fidelity enum + `-` handling (ADR-002), URL hash grammar (ADR-004), device presets (ADR-006), GH Pages pipeline (ADR-008)
+- [x] Update `docs/reference/easa-sources.md`: `MOT` → `MTN` corrected, GM1 Table 1 discrepancy flagged, "matrix columns use long names; codes come from Appendix 3" recorded (done during Phase 2)
 
 ## Resolved from Source PDFs (2026-04-14)
 
