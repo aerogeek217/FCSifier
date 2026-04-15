@@ -1,0 +1,7 @@
+task_id,level,FDK,CLH,SYS
+t-both,TP,S,R,G
+t-both,T,G,G,N
+t-tp-only,TP,R,R,R
+t-nfsrd,TP,-,-,-
+t-nfsrd,T,-,-,-
+t-helicopter,TP,S,S,S

@@ -1,0 +1,5 @@
+[
+  { "code": "FDK", "name": "Flight Deck", "category": "aircraft_simulation" },
+  { "code": "CLH", "name": "Controls Hardware", "category": "aircraft_simulation" },
+  { "code": "SYS", "name": "Systems", "category": "aircraft_simulation" }
+]

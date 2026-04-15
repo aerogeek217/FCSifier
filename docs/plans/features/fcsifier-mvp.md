@@ -179,13 +179,13 @@ The canonical 14 feature codes above are the authoritative column order for `tas
 - [x] Add `data/features.json` (14 canonical codes in order) and `data/fidelity.json` (`["N","G","R","S"]`)
 
 **Phase 2 — data plumbing**
-- [ ] Replace `data/tasks.csv` with the new schema (`aircraft_category: aeroplane|helicopter` only; no `aircraft_class`)
-- [ ] Create `data/task_fcs.csv` with 16 columns: `task_id`, `level` (`T` or `TP`), and the 14 canonical feature codes in order (FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MTN, VIS, NAV, ATM, OST); cell value is `S|R|G|N` or `-` for "not performed in FSTD"
-- [ ] Write `scripts/extract-easa.ts` against `docs/EASA/extracted/appendix_2….txt` (aeroplane lines 234–557, helicopter lines 558–860); emit a draft `task_fcs.csv` + `tasks.csv`, diff against any existing file, **human reviews before commit** (not auto-committed)
-- [ ] Run the extractor; seed the full set (not a sample) so UX validation is done against real data. Keep at least one null-FCS (`-`-row) task visible (§1.1 Performance calculation) for the N/A bucket
-- [ ] Create `data/devices.json` with ~3 illustrative presets covering different FCS profiles (one high-fidelity aeroplane FFS, one mid-tier aeroplane FTD, one helicopter FFS); mark each `source: "illustrative"` — real-device data is out of scope for MVP
-- [ ] Rewrite `src/data/loader.ts` to load + join `features.json`, `tasks.csv`, `task_fcs.csv`, `devices.json` into a typed `{ features, tasks, devices }` where each task has `{ T?: Fcs | null, TP?: Fcs | null }` (absent = no row at that level; `null` = row exists but all `-` → task not performed in FSTD)
-- [ ] Loader tests against new fixtures in `test/fixtures/` covering: missing row, all-`-` row, mixed valid row, unknown fidelity code rejection
+- [x] Replace `data/tasks.csv` with the new schema (`aircraft_category: aeroplane|helicopter` only; no `aircraft_class`)
+- [x] Create `data/task_fcs.csv` with 16 columns: `task_id`, `level` (`T` or `TP`), and the 14 canonical feature codes in order (FDK, CLH, CLO, SYS, GND, IGE, OGE, SND, VIB, MTN, VIS, NAV, ATM, OST); cell value is `S|R|G|N` or `-` for "not performed in FSTD"
+- [x] Write `scripts/extract-easa.ts` against `docs/EASA/extracted/appendix_2….txt` (aeroplane lines 234–557, helicopter lines 558–820); emit a draft `task_fcs.csv` + `tasks.csv`, diff against any existing file, **human reviews before commit** (not auto-committed)
+- [x] Run the extractor; seed the full set (122 tasks: 66 aeroplane + 56 helicopter, 244 fidelity rows). Null-FCS tasks preserved: `ae-1.1`, `ae-1.2`, `ae-3.6.7`, `ae-3.6.8`, `he-1.1`, `he-4.6`, `he-4.9`
+- [x] Create `data/devices.json` with ~3 illustrative presets covering different FCS profiles (one high-fidelity aeroplane FFS, one mid-tier aeroplane FTD, one helicopter FFS); mark each `source: "illustrative"` — real-device data is out of scope for MVP
+- [x] Rewrite `src/data/loader.ts` to load + join `features.json`, `tasks.csv`, `task_fcs.csv`, `devices.json` into a typed `{ features, tasks, devices }` where each task has `{ T?: Fcs | null, TP?: Fcs | null }` (absent = no row at that level; `null` = row exists but all `-` → task not performed in FSTD)
+- [x] Loader tests against new fixtures in `test/fixtures/` covering: missing row, all-`-` row, mixed valid row, unknown fidelity code rejection
 
 **Phase 3 — UI (Svelte components)**
 - [ ] `src/lib/state.svelte.ts` — shared `$state` for selected tasks, device FCS, active training level (`T` vs `TP`), and aircraft category filter; `$derived` rollup / authorised-tasks / N/A-bucket / "no-requirement-at-this-level" bucket

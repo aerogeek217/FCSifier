@@ -1,0 +1,5 @@
+id,name,phase,aircraft_category,section,source,notes
+t-both,Has both levels,takeoff,aeroplane,1,fixture,
+t-tp-only,Has only TP,takeoff,aeroplane,1,fixture,
+t-nfsrd,Not performed in FSTD,preflight,aeroplane,1,fixture,
+t-helicopter,Helicopter-side task,enroute,helicopter,2,fixture,

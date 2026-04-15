@@ -1,0 +1,10 @@
+[
+  {
+    "id": "dev-a",
+    "name": "Test Device A",
+    "vendor": "Acme",
+    "aircraft_category": "aeroplane",
+    "fcs": { "FDK": "S", "CLH": "R", "SYS": "G" },
+    "source": "fixture"
+  }
+]

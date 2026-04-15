@@ -21,7 +21,7 @@ See `.claude/rules/` — rules load automatically when editing matching paths.
 
 ## Testing
 - Every feature or bug fix includes tests — tests are a deliverable, not an afterthought
-- Test count: **[35/35 tests passing]** *(update this after every test run)*
+- Test count: **[49/49 tests passing]** *(update this after every test run)*
 - Include test count in commit messages, e.g.: `Add CSV loader (12/12 tests passing)`
 
 ## Constraints

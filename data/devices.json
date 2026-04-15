@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ae-ffs-high",
+    "name": "Aeroplane FFS (illustrative high-fidelity)",
+    "vendor": "",
+    "aircraft_category": "aeroplane",
+    "fcs": {
+      "FDK": "S", "CLH": "S", "CLO": "S", "SYS": "S", "GND": "S",
+      "IGE": "S", "OGE": "S", "SND": "S", "VIB": "R", "MTN": "S",
+      "VIS": "S", "NAV": "S", "ATM": "R", "OST": "R"
+    },
+    "source": "illustrative — not a real device"
+  },
+  {
+    "id": "ae-ftd-mid",
+    "name": "Aeroplane FTD (illustrative mid-tier, no motion)",
+    "vendor": "",
+    "aircraft_category": "aeroplane",
+    "fcs": {
+      "FDK": "R", "CLH": "R", "CLO": "R", "SYS": "R", "GND": "G",
+      "IGE": "G", "OGE": "G", "SND": "G", "VIB": "N", "MTN": "N",
+      "VIS": "G", "NAV": "R", "ATM": "G", "OST": "G"
+    },
+    "source": "illustrative — not a real device"
+  },
+  {
+    "id": "he-ffs-high",
+    "name": "Helicopter FFS (illustrative high-fidelity)",
+    "vendor": "",
+    "aircraft_category": "helicopter",
+    "fcs": {
+      "FDK": "S", "CLH": "S", "CLO": "S", "SYS": "S", "GND": "S",
+      "IGE": "S", "OGE": "S", "SND": "S", "VIB": "R", "MTN": "S",
+      "VIS": "S", "NAV": "S", "ATM": "R", "OST": "R"
+    },
+    "source": "illustrative — not a real device"
+  }
+]
