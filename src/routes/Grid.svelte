@@ -44,6 +44,14 @@
     return false;
   }
 
+  type TrainState = 'go' | 'no-go' | 'none' | 'blank';
+  function trainState(fcs: Fcs | null | undefined): TrainState {
+    if (fcs === undefined) return 'blank';
+    if (fcs === null) return 'none';
+    if (!hasFcs) return 'blank';
+    return taskExceeds(fcs) ? 'no-go' : 'go';
+  }
+
   const visibleTasks = $derived.by<TaskRow[]>(() => {
     const q = search.trim().toLowerCase();
     return appState.tasksInCategory.filter(t => {
@@ -58,17 +66,39 @@
     });
   });
 
+  const trainStats = $derived.by<{ go: number; applicable: number } | null>(() => {
+    if (!hasFcs) return null;
+    let go = 0;
+    let applicable = 0;
+    for (const t of visibleTasks) {
+      const fcs = t[appState.level];
+      if (fcs && typeof fcs === 'object') {
+        applicable++;
+        if (!taskExceeds(fcs)) go++;
+      }
+    }
+    return { go, applicable };
+  });
+
   async function copyTasks(): Promise<void> {
-    const headers = ['ID', 'Name', 'Category', 'Level', ...features.map(f => f.code)];
+    const headers = ['ID', 'Name', 'Category', 'Level', 'Status', ...features.map(f => f.code)];
     const lines: string[] = [headers.join('\t')];
     for (const t of visibleTasks) {
       const fcs = t[appState.level];
+      const status = (
+        {
+          'go': 'GO',
+          'no-go': 'NO-GO',
+          'none': 'n/a',
+          'blank': hasFcs ? '' : '-',
+        } as const
+      )[trainState(fcs)];
       const cells = features.map(f => {
         if (fcs === undefined) return '';
         if (fcs === null) return '-';
         return fcs[f.code] ?? 'N';
       });
-      lines.push([t.id, t.name, t.aircraft_category, appState.level, ...cells].join('\t'));
+      lines.push([t.id, t.name, t.aircraft_category, appState.level, status, ...cells].join('\t'));
     }
     await writeClipboard(lines.join('\n'), 'tasks');
   }
@@ -154,6 +184,11 @@
           <span class="sw over-R">R</span>
           <span class="sw over-S">S</span>
         </span>
+        <span class="legend-group legend-train">
+          <span class="legend-label">Train</span>
+          <span class="badge go">Go</span>
+          <span class="badge no-go">No-Go</span>
+        </span>
       {/if}
       <span class="legend-group">
         <span class="sw sw-na">—</span>
@@ -184,6 +219,22 @@
               <span class="ref-hint">{hasFcs ? 'comparing' : 'set to compare'}</span>
             </div>
           </th>
+          <th class="status-head" class:live={hasFcs} title="Can the task be trained on the reference FCS?">
+            <div class="h-status-label">
+              <span class="status-tick">◈</span>
+              <span>Train</span>
+            </div>
+            <div class="h-status-stats">
+              {#if trainStats}
+                <span class="stat-num">{trainStats.go}</span>
+                <span class="stat-div">/</span>
+                <span class="stat-den">{trainStats.applicable}</span>
+                <span class="stat-unit">go</span>
+              {:else}
+                <span class="stat-idle">awaiting FCS</span>
+              {/if}
+            </div>
+          </th>
           {#each features as f (f.code)}
             {@const v = (appState.deviceFcs[f.code] ?? 'N') as Fidelity}
             <th class="combo-head fid-{v}" title={f.name}>
@@ -203,10 +254,24 @@
       <tbody>
         {#each visibleTasks as t (t.id)}
           {@const fcs = t[appState.level]}
-          <tr>
+          {@const ts = trainState(fcs)}
+          <tr class="row-{ts}">
             <td class="task-cell">
               <span class="id">{t.id}</span>
               <span class="name">{t.name}</span>
+            </td>
+            <td class="status-cell" data-state={ts}>
+              {#if ts === 'go'}
+                <span class="badge go" title="Task is trainable on this FCS">Go</span>
+              {:else if ts === 'no-go'}
+                <span class="badge no-go" title="Task requires higher fidelity than this FCS">No-Go</span>
+              {:else if ts === 'none'}
+                <span class="status-muted" title="Not performed in an FSTD">n/a</span>
+              {:else if !hasFcs}
+                <span class="status-muted" title="Set a reference FCS to evaluate">·</span>
+              {:else}
+                <span class="status-muted" title="No {appState.level} row">·</span>
+              {/if}
             </td>
             {#if fcs === undefined}
               {#each features as f (f.code)}
@@ -228,7 +293,7 @@
           </tr>
         {:else}
           <tr>
-            <td class="empty" colspan={features.length + 1}>No tasks match.</td>
+            <td class="empty" colspan={features.length + 2}>No tasks match.</td>
           </tr>
         {/each}
       </tbody>
@@ -556,6 +621,153 @@
     background: var(--paper-warm);
     color: rgba(110, 122, 144, 0.4);
     font-weight: 400;
+  }
+
+  /* ── Status column (GO / NO-GO) ──────────── */
+  .grid thead th.status-head {
+    padding: 0;
+    min-width: 5.4rem;
+    width: 5.4rem;
+    vertical-align: top;
+    border-right: 2px solid var(--ink);
+  }
+  .h-status-label {
+    background: var(--ink);
+    color: var(--paper-warm);
+    box-sizing: border-box;
+    height: 2.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.3rem;
+    font: 600 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--ink-soft);
+  }
+  .status-tick {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0;
+  }
+  .status-head.live .status-tick { color: #7ec699; }
+
+  .h-status-stats {
+    box-sizing: border-box;
+    height: 2.4rem;
+    background: var(--paper-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.35rem 0.35rem;
+    font: 700 0.95rem/1 var(--font-mono);
+    color: var(--ink);
+  }
+  .status-head.live .h-status-stats {
+    background: linear-gradient(180deg, #e6efe3 0%, #d8e4d2 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .h-status-stats .stat-num { color: #124131; font-weight: 800; }
+  .h-status-stats .stat-div { color: var(--ink-mute); font-weight: 500; }
+  .h-status-stats .stat-den { color: var(--ink-soft); font-weight: 600; }
+  .h-status-stats .stat-unit {
+    margin-left: 0.25rem;
+    font: 600 0.58rem/1 var(--font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .h-status-stats .stat-idle {
+    font: italic 0.68rem/1 var(--font-display);
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+    text-transform: lowercase;
+  }
+
+  /* Body status cell */
+  .grid td.status-cell {
+    text-align: center;
+    padding: 0.25rem 0.35rem;
+    min-width: 5.4rem;
+    width: 5.4rem;
+    background: var(--paper-warm);
+    border-right: 2px solid var(--rule-strong);
+    box-shadow: 1px 0 0 var(--rule);
+  }
+  .grid tbody tr:nth-child(even) .status-cell { background: var(--paper-soft); }
+  .grid tbody tr:hover .status-cell { background: #fff7e0; }
+  .grid tbody tr.row-no-go .status-cell { background: #fbe9dc; }
+  .grid tbody tr.row-no-go:nth-child(even) .status-cell { background: #f6e0cf; }
+  .grid tbody tr.row-no-go:hover .status-cell { background: #fcd9bd; }
+
+  /* GO / NO-GO stamp — aviation clearance aesthetic.
+     Solid filled rectangles, mono type, tight letter-spacing, subtle bevel. */
+  .status-cell .badge {
+    display: inline-block;
+    min-width: 3.2rem;
+    padding: 0.3rem 0.5rem 0.26rem;
+    font: 700 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    box-shadow:
+      0 1px 0 rgba(13, 31, 60, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+    transform: translateY(0);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .status-cell .badge.go {
+    background: #1d5d4a;
+    color: #f3e6c4;
+    border-color: #0c3224;
+  }
+  .status-cell .badge.no-go {
+    background: var(--over-R-bg);
+    color: var(--paper-warm);
+    border-color: var(--accent-deep);
+  }
+  .grid tbody tr:hover .status-cell .badge {
+    transform: translateY(-1px);
+    box-shadow:
+      0 2px 0 rgba(13, 31, 60, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  }
+
+  .status-cell .status-muted {
+    display: inline-block;
+    min-width: 1.2rem;
+    color: var(--ink-mute);
+    font: 0.85rem/1 var(--font-mono);
+    opacity: 0.55;
+    letter-spacing: 0.08em;
+  }
+
+  /* Legend mini-stamps — slightly smaller than the body badge so the
+     legend row keeps its lean height. */
+  :global(.legend .badge) {
+    display: inline-block;
+    padding: 0.2rem 0.42rem;
+    font: 700 0.62rem/1 var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid transparent;
+  }
+  :global(.legend .badge.go) {
+    background: #1d5d4a;
+    color: #f3e6c4;
+    border-color: #0c3224;
+  }
+  :global(.legend .badge.no-go) {
+    background: var(--over-R-bg);
+    color: var(--paper-warm);
+    border-color: var(--accent-deep);
   }
 
   .grid .empty {

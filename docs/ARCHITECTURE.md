@@ -64,9 +64,15 @@ CS-FSTD/
                          #   dark "code" band (feature code) over a paper "FCS" band
                          #   (editable dropdown) — the Reference FCS is the same set
                          #   of <th> cells as the data columns, so they align
-                         #   natively. Toolbar above the table hosts DevicePresets,
-                         #   search, hide-exceeding toggle, and Copy-task-list (TSV)
-                         #   / Copy-FCS (labelled) buttons via navigator.clipboard.
+                         #   natively. A dedicated "Train" status column sits
+                         #   between the task name and the first feature, rendering
+                         #   a GO / NO-GO aviation-clearance stamp per row (local
+                         #   `trainState()` helper over `taskExceeds`); its header's
+                         #   bottom band shows a live GO / applicable ratio via a
+                         #   `trainStats` `$derived`. Toolbar above the table hosts
+                         #   DevicePresets, search, hide-exceeding toggle, and
+                         #   Copy-task-list (TSV — now includes a Status column) /
+                         #   Copy-FCS (labelled) buttons via navigator.clipboard.
       ByTask.svelte      # Searchable multi-select task list + required-FCS matrix
                          #   + N/A and no-requirement buckets.
       ByDevice.svelte    # Editable FCS matrix + preset controls + authorised-task
@@ -183,7 +189,7 @@ by Vite; `check-runtime-deps.sh` enforces that no `http(s)://` reference lands i
 1. Browser loads `index.html`; Vite-emitted JS mounts `<App />` into `#app`.
 2. `App.svelte` calls `startRouter()` (reads `location.hash` into `appState`) and `loadDataset('./data/')`; the resolved dataset is assigned to `appState.dataset`.
 3. Shared `$state` on `appState` drives all three views: `selectedTaskIds`, `deviceFcs`, `level`, `category`.
-4. `Grid.svelte` iterates `appState.tasksInCategory`, reads each task's FCS at the active level, and colours each cell via `compare(taskFidelity, deviceFidelity)` (red when >, blue gradient otherwise); `ByTask.svelte` reads `appState.requiredFcs` (per-feature `rollup` of selected tasks at the active level) and `appState.drivingTasksByFeature`; `ByDevice.svelte` reads `appState.deviceBuckets` (partitioned via `authorizes`).
+4. `Grid.svelte` iterates `appState.tasksInCategory`, reads each task's FCS at the active level, colours each cell via `compare(taskFidelity, deviceFidelity)` (red when >, blue gradient otherwise), and collapses the whole row's per-feature compare into a single GO / NO-GO stamp in the Train column (local `trainState()`); `ByTask.svelte` reads `appState.requiredFcs` (per-feature `rollup` of selected tasks at the active level) and `appState.drivingTasksByFeature`; `ByDevice.svelte` reads `appState.deviceBuckets` (partitioned via `authorizes`).
 5. The router's `$effect` serialises `appState` back into `location.hash` via `history.replaceState`, so every view (route + selection) is shareable as a URL. `grid` and `by-device` both persist `?fcs=` to the hash; `by-task` persists `?tasks=`.
 
 ## Where to Find Things
@@ -203,7 +209,7 @@ by Vite; `check-runtime-deps.sh` enforces that no `http(s)://` reference lands i
 | Change preset storage (key, shape, built-in vs. user) | `src/lib/DevicePresets.svelte` |
 | Change the by-task view (list, search, buckets) | `src/routes/ByTask.svelte` |
 | Change the by-device view (layout, buckets, actions) | `src/routes/ByDevice.svelte` |
-| Change the grid view (colours, hide-exceeding, copy formats, sticky column) | `src/routes/Grid.svelte` |
+| Change the grid view (colours, hide-exceeding, GO / NO-GO stamps, copy formats, sticky column) | `src/routes/Grid.svelte` |
 | Change the tab nav, shared controls, or the data-load flow | `src/App.svelte` |
 | Add / edit FCS domain logic | `src/domain/fcs.ts` (+ `test/fcs.test.ts`) |
 | Change the canonical feature list or fidelity order | `data/features.json` / `data/fidelity.json` |
