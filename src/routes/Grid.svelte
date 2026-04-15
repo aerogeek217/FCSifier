@@ -1,10 +1,10 @@
 <script lang="ts">
   import { appState } from '../lib/state.svelte.ts';
-  import FcsMatrix from '../lib/FcsMatrix.svelte';
   import DevicePresets from '../lib/DevicePresets.svelte';
   import {
     compare,
     formatFcs,
+    FIDELITY_ORDER,
     type Fcs,
     type FeatureCode,
     type Fidelity,
@@ -94,55 +94,73 @@
 </script>
 
 <section class="grid-view">
-  <details class="fcs-panel" open>
-    <summary>
-      <strong>Reference FCS</strong>
-      <span class="hint">
-        {hasFcs
-          ? '— cells exceeding this show red; uncheck/clear to disable comparison'
-          : '— optional; set to compare tasks against a device'}
-      </span>
-    </summary>
-    {#if appState.dataset}
-      <DevicePresets
-        builtin={appState.dataset.devices}
-        currentFcs={appState.deviceFcs}
-        currentCategory={presetCategory}
-        onLoad={onLoadPreset}
-      />
-      <FcsMatrix
-        features={appState.dataset.features}
-        fcs={appState.deviceFcs}
-        mode="edit"
-        onFcsChange={onFidelityChange}
-      />
-      <div class="fcs-actions">
-        <button type="button" onclick={clearFcs}>Clear (all N)</button>
+  <!-- Toolbar -->
+  <div class="toolbar card">
+    <div class="toolbar-row">
+      <div class="t-group t-presets">
+        <span class="t-label">Reference device</span>
+        {#if appState.dataset}
+          <DevicePresets
+            builtin={appState.dataset.devices}
+            currentFcs={appState.deviceFcs}
+            currentCategory={presetCategory}
+            onLoad={onLoadPreset}
+          />
+          {#if hasFcs}
+            <button type="button" class="ghost" onclick={clearFcs}>Clear FCS</button>
+          {/if}
+        {/if}
       </div>
-    {/if}
-  </details>
 
-  <div class="toolbar">
-    <label class="search">
-      <span>Search</span>
-      <input type="search" bind:value={search} placeholder="id or name…" />
-    </label>
-    {#if hasFcs}
-      <label class="toggle">
-        <input type="checkbox" bind:checked={hideExceeding} />
-        Hide tasks exceeding FCS
-      </label>
-    {/if}
-    <span class="count">Showing {visibleTasks.length} of {appState.tasksInCategory.length}</span>
-    <div class="copy-actions">
-      <button type="button" onclick={copyTasks} title="TSV — paste into a spreadsheet">
-        {copied === 'tasks' ? '✓ Copied' : 'Copy task list'}
-      </button>
-      {#if hasFcs}
-        <button type="button" onclick={copyFcs} title="Labelled FCS vector">
-          {copied === 'fcs' ? '✓ Copied' : 'Copy FCS'}
+      <div class="t-group t-search">
+        <span class="t-label">Search</span>
+        <input type="search" bind:value={search} placeholder="task id or name…" />
+        <span class="count">
+          <strong>{visibleTasks.length}</strong>
+          <span>of {appState.tasksInCategory.length}</span>
+        </span>
+      </div>
+
+      <div class="t-group t-actions">
+        {#if hasFcs}
+          <label class="toggle">
+            <input type="checkbox" bind:checked={hideExceeding} />
+            <span>Hide exceeding</span>
+          </label>
+        {/if}
+        <button type="button" onclick={copyTasks} title="TSV — paste into a spreadsheet">
+          {copied === 'tasks' ? '✓ Copied' : 'Copy tasks'}
         </button>
+        {#if hasFcs}
+          <button type="button" onclick={copyFcs} title="Labelled FCS vector">
+            {copied === 'fcs' ? '✓ Copied' : 'Copy FCS'}
+          </button>
+        {/if}
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-group">
+        <span class="legend-label">Fidelity</span>
+        <span class="sw fid-N">N</span>
+        <span class="sw fid-G">G</span>
+        <span class="sw fid-R">R</span>
+        <span class="sw fid-S">S</span>
+      </span>
+      {#if hasFcs}
+        <span class="legend-group">
+          <span class="legend-label">Exceeds</span>
+          <span class="sw over-G">G</span>
+          <span class="sw over-R">R</span>
+          <span class="sw over-S">S</span>
+        </span>
       {/if}
+      <span class="legend-group">
+        <span class="sw sw-na">—</span>
+        <span class="legend-label">not in FSTD</span>
+        <span class="sw sw-blank">·</span>
+        <span class="legend-label">no {appState.level} row</span>
+      </span>
     </div>
   </div>
 
@@ -150,35 +168,35 @@
     <p class="error">Copy failed: {copyError}</p>
   {/if}
 
-  <div class="legend">
-    <span class="legend-group">
-      <span class="legend-label">Fidelity:</span>
-      <span class="sw fid-N">N</span>
-      <span class="sw fid-G">G</span>
-      <span class="sw fid-R">R</span>
-      <span class="sw fid-S">S</span>
-    </span>
-    {#if hasFcs}
-      <span class="legend-group">
-        <span class="legend-label">Exceeds FCS:</span>
-        <span class="sw over-G">G</span>
-        <span class="sw over-R">R</span>
-        <span class="sw over-S">S</span>
-      </span>
-    {/if}
-    <span class="legend-group">
-      <span class="sw sw-na">—</span><span class="legend-label">not performed in FSTD</span>
-      <span class="sw sw-blank">·</span><span class="legend-label">no {appState.level} row</span>
-    </span>
-  </div>
-
-  <div class="grid-scroll">
+  <!-- Main grid -->
+  <div class="grid-scroll card">
     <table class="grid">
       <thead>
-        <tr>
-          <th class="task-head">Task</th>
+        <tr class="head-row" class:has-fcs={hasFcs}>
+          <th class="task-head">
+            <div class="h-task-label">
+              <span class="head-eyebrow">Training task</span>
+              <span class="head-sub">EASA CS-FSTD Appendix 2</span>
+            </div>
+            <div class="h-ref-label">
+              <span class="ref-tick">▸</span>
+              <span>Reference FCS</span>
+              <span class="ref-hint">{hasFcs ? 'comparing' : 'set to compare'}</span>
+            </div>
+          </th>
           {#each features as f (f.code)}
-            <th title={f.name}>{f.code}</th>
+            {@const v = (appState.deviceFcs[f.code] ?? 'N') as Fidelity}
+            <th class="combo-head fid-{v}" title={f.name}>
+              <div class="h-code">{f.code}</div>
+              <div class="h-fcs">
+                <select aria-label={f.name} value={v}
+                  onchange={(e) => onFidelityChange(f.code, (e.currentTarget as HTMLSelectElement).value as Fidelity)}>
+                  {#each FIDELITY_ORDER as lvl (lvl)}
+                    <option value={lvl}>{lvl}</option>
+                  {/each}
+                </select>
+              </div>
+            </th>
           {/each}
         </tr>
       </thead>
@@ -222,100 +240,119 @@
   .grid-view {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.85rem;
   }
 
-  .fcs-panel {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0.4rem 0.75rem 0.6rem;
+  .card {
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
   }
-  .fcs-panel summary {
+
+  /* ── Toolbar ──────────────────────────── */
+  .toolbar { padding: 0.7rem 0.9rem; }
+  .toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 1.5rem;
+    align-items: flex-end;
+  }
+  .t-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .t-group.t-search { flex: 1; min-width: 18rem; }
+  .t-group.t-actions { margin-left: auto; }
+  .t-label {
+    font: 600 0.62rem/1 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+  }
+  .t-search input[type="search"] {
+    flex: 1;
+    min-width: 12rem;
+  }
+  .count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    font: 0.8rem var(--font-mono);
+    color: var(--ink-mute);
+    padding-left: 0.4rem;
+    border-left: 1px solid var(--rule);
+    margin-left: 0.4rem;
+  }
+  .count strong {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
     cursor: pointer;
     user-select: none;
-    padding: 0.15rem 0;
   }
-  .fcs-panel summary .hint {
-    color: var(--muted);
-    font-weight: normal;
-    font-size: 0.85rem;
-    margin-left: 0.5rem;
-  }
-  .fcs-actions { margin-top: 0.5rem; }
-  .fcs-actions button { padding: 0.25rem 0.5rem; font: inherit; }
+  .toggle input { accent-color: var(--ink); }
 
-  .toolbar {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    flex-wrap: wrap;
+  button.ghost {
+    background: transparent;
+    border-color: var(--rule);
+    color: var(--ink-mute);
   }
-  .toolbar .search {
-    display: inline-flex;
-    gap: 0.35rem;
-    align-items: center;
-  }
-  .toolbar .search span { color: var(--muted); font-size: 0.85rem; }
-  .toolbar .search input {
-    padding: 0.25rem 0.4rem;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    font: inherit;
-    min-width: 10rem;
-  }
-  .toolbar .toggle {
-    display: inline-flex;
-    gap: 0.35rem;
-    align-items: center;
-    font-size: 0.9rem;
-  }
-  .toolbar .count { color: var(--muted); font-size: 0.85rem; }
-  .toolbar .copy-actions {
-    margin-left: auto;
-    display: flex;
-    gap: 0.4rem;
-  }
-  .toolbar .copy-actions button {
-    padding: 0.25rem 0.6rem;
-    font: inherit;
-    cursor: pointer;
+  button.ghost:hover {
+    color: var(--paper-warm);
+    background: var(--ink-soft);
+    border-color: var(--ink-soft);
   }
 
-  .error { color: #b00020; margin: 0; }
-
+  /* ── Legend ───────────────────────────── */
   .legend {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--rule);
     display: flex;
-    gap: 1.25rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
     align-items: center;
-    font-size: 0.8rem;
-    color: var(--muted);
+    font-size: 0.78rem;
+    color: var(--ink-mute);
   }
-  .legend .legend-group {
+  .legend-group {
     display: inline-flex;
-    gap: 0.35rem;
+    gap: 0.3rem;
     align-items: center;
   }
-  .legend .legend-label { color: var(--muted); }
+  .legend-label {
+    color: var(--ink-mute);
+    font: 600 0.62rem/1 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-right: 0.2rem;
+  }
   .legend .sw {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 1.6rem;
+    min-width: 1.55rem;
     height: 1.2rem;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 3px;
-    font-weight: 600;
-    font-size: 0.75rem;
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    border: 1px solid rgba(13, 31, 60, 0.12);
+    border-radius: 2px;
+    font: 600 0.72rem/1 var(--font-mono);
   }
 
+  /* ── Grid scroll ──────────────────────── */
   .grid-scroll {
     overflow: auto;
-    max-height: 72vh;
-    border: 1px solid var(--border);
-    background: #fff;
+    max-height: 76vh;
+    background: var(--paper-warm);
   }
   .grid {
     border-collapse: separate;
@@ -326,75 +363,206 @@
   }
   .grid th,
   .grid td {
-    border-right: 1px solid #eaeaea;
-    border-bottom: 1px solid #eaeaea;
-    padding: 0.25rem 0.35rem;
+    border-right: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+    padding: 0.32rem 0.45rem;
     text-align: center;
-    background: #fff;
+    background: var(--paper-warm);
     font-size: 0.85rem;
-    min-width: 2.25rem;
+    min-width: 2.5rem;
+    height: 1.85rem;
   }
-  .grid thead th {
+
+  /* Single combined sticky header. Each column's cell stacks the feature
+     code (dark band) on top of the editable reference FCS dropdown. This
+     guarantees column alignment (one row = one column set) and avoids
+     the cross-row sticky-positioning pitfalls of a two-row header. */
+  .grid thead tr.head-row th {
     position: sticky;
     top: 0;
-    z-index: 2;
-    background: #f1f3f5;
-    font-size: 0.8rem;
-    letter-spacing: 0.03em;
+    z-index: 4;
+    padding: 0;
+    height: auto;
+    vertical-align: top;
+    background: var(--paper-warm);
+    border-right: 1px solid var(--rule-soft);
+    border-bottom: 2px solid var(--ink);
   }
-  .grid thead th.task-head {
+  .grid thead tr.head-row th.task-head {
     left: 0;
-    z-index: 3;
+    z-index: 6;
     text-align: left;
-    min-width: 18rem;
+    min-width: 19rem;
+    box-shadow: 1px 0 0 var(--ink);
   }
+
+  /* Top band on every header cell — dark ink, feature code or task title.
+     Fixed height so each column's top band aligns horizontally with the
+     neighbouring task-head top band. */
+  .h-code,
+  .h-task-label {
+    background: var(--ink);
+    color: var(--paper-warm);
+    border-bottom: 1px solid var(--ink-soft);
+    box-sizing: border-box;
+    height: 2.7rem;
+    display: flex;
+  }
+  .h-code {
+    padding: 0.4rem 0.3rem;
+    font: 600 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.06em;
+    align-items: center;
+    justify-content: center;
+  }
+  .h-task-label {
+    padding: 0.3rem 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .head-eyebrow {
+    display: block;
+    font: 600 0.78rem/1.1 var(--font-display);
+    letter-spacing: 0.02em;
+    color: var(--paper-warm);
+    text-transform: none;
+  }
+  .head-sub {
+    display: block;
+    font: 0.6rem/1.2 var(--font-mono);
+    color: rgba(242, 200, 122, 0.85);
+    margin-top: 2px;
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Bottom band on every header cell — reference FCS row (editable).
+     Fixed height so all bottom bands align horizontally. */
+  .h-ref-label,
+  .h-fcs {
+    box-sizing: border-box;
+    height: 2.4rem;
+    background: var(--paper-soft);
+  }
+  .h-ref-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    font: 600 0.8rem/1 var(--font-display);
+    color: var(--ink);
+  }
+  .ref-tick { color: var(--accent); font-size: 0.9rem; }
+  .ref-hint {
+    margin-left: auto;
+    font: 0.62rem var(--font-mono);
+    color: var(--ink-mute);
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+  }
+  .head-row.has-fcs .ref-hint { color: var(--accent); }
+
+  .h-fcs {
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+  }
+  .h-fcs select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    text-align-last: center;
+    font: 700 0.9rem var(--font-mono);
+    color: inherit;
+    padding: 0.35rem 0.3rem;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    border-radius: 0;
+    text-transform: uppercase;
+  }
+  .h-fcs select:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    box-shadow: none;
+  }
+
+  /* Body: task name column — sticky left */
   .grid .task-cell {
     position: sticky;
     left: 0;
     z-index: 1;
     text-align: left;
-    min-width: 18rem;
-    max-width: 24rem;
-    border-right: 2px solid var(--border);
-    background: #fff;
+    min-width: 19rem;
+    max-width: 26rem;
+    border-right: 1px solid var(--rule-strong);
+    box-shadow: 1px 0 0 var(--rule);
+    background: var(--paper-warm);
     white-space: normal;
+    padding: 0.4rem 0.75rem;
+    line-height: 1.35;
   }
-  .grid tbody tr:nth-child(even) .task-cell { background: #fafafa; }
+  /* Row striping applies only to the task-name column. FCS cells must keep
+     their designed bg so fg contrast (esp. fid-R, fid-S, over-*) survives. */
+  .grid tbody tr:nth-child(even) .task-cell { background: var(--paper-soft); }
   .grid .task-cell .id {
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-right: 0.5rem;
+    font: 600 0.72rem/1 var(--font-mono);
+    color: var(--accent);
+    margin-right: 0.55rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
-  .grid tbody tr:hover .task-cell { background: #eef6ff; }
+  .grid .task-cell .name {
+    color: var(--ink);
+    font-size: 0.86rem;
+  }
+  .grid tbody tr:hover .task-cell { background: #fff7e0; }
 
-  /* Fidelity — blue gradient from N (lightest) to S (darkest) */
+  /* ── Fidelity colours (body cells) ─────── */
   .grid td.fid-N,
-  .legend .sw.fid-N { background: #eff4fa; color: #7c8b9c; font-weight: 600; }
+  :global(.legend .sw.fid-N) { background: var(--fid-N-bg); color: var(--fid-N-fg); font-weight: 600; }
   .grid td.fid-G,
-  .legend .sw.fid-G { background: #bfdbfe; color: #1e3a8a; font-weight: 600; }
+  :global(.legend .sw.fid-G) { background: var(--fid-G-bg); color: var(--fid-G-fg); font-weight: 600; }
   .grid td.fid-R,
-  .legend .sw.fid-R { background: #3b82f6; color: #fff;    font-weight: 600; }
+  :global(.legend .sw.fid-R) { background: var(--fid-R-bg); color: var(--fid-R-fg); font-weight: 700; }
   .grid td.fid-S,
-  .legend .sw.fid-S { background: #1e3a8a; color: #fff;    font-weight: 600; }
+  :global(.legend .sw.fid-S) { background: var(--fid-S-bg); color: var(--fid-S-fg); font-weight: 700; }
 
-  /* Exceeds FCS — red gradient */
+  /* ── Fidelity colours on header's bottom band (reference FCS) ─── */
+  .grid thead th.combo-head.fid-N .h-fcs { background: var(--fid-N-bg); color: var(--fid-N-fg); }
+  .grid thead th.combo-head.fid-G .h-fcs { background: var(--fid-G-bg); color: var(--fid-G-fg); }
+  .grid thead th.combo-head.fid-R .h-fcs { background: var(--fid-R-bg); color: var(--fid-R-fg); }
+  .grid thead th.combo-head.fid-S .h-fcs { background: var(--fid-S-bg); color: var(--fid-S-fg); }
+
+  /* Exceeds — warm warning */
   .grid td.over-G,
-  .legend .sw.over-G { background: #fecaca; color: #7f1d1d; font-weight: 700; }
+  :global(.legend .sw.over-G) { background: var(--over-G-bg); color: var(--over-G-fg); font-weight: 700; }
   .grid td.over-R,
-  .legend .sw.over-R { background: #ef4444; color: #fff;    font-weight: 700; }
+  :global(.legend .sw.over-R) { background: var(--over-R-bg); color: var(--over-R-fg); font-weight: 700; }
   .grid td.over-S,
-  .legend .sw.over-S { background: #7f1d1d; color: #fff;    font-weight: 700; }
+  :global(.legend .sw.over-S) { background: var(--over-S-bg); color: var(--over-S-fg); font-weight: 700; }
 
   .grid td.sw-na,
-  .legend .sw.sw-na { background: #f6f6f6; color: var(--muted); font-weight: 400; }
+  :global(.legend .sw.sw-na) {
+    background: repeating-linear-gradient(45deg, transparent 0 4px, rgba(110, 122, 144, 0.08) 4px 5px),
+                var(--paper-warm);
+    color: var(--ink-mute);
+    font-weight: 400;
+  }
   .grid td.sw-blank,
-  .legend .sw.sw-blank { background: #fcfcfc; color: #bbb; font-weight: 400; }
+  :global(.legend .sw.sw-blank) {
+    background: var(--paper-warm);
+    color: rgba(110, 122, 144, 0.4);
+    font-weight: 400;
+  }
 
   .grid .empty {
     text-align: center;
     font-style: italic;
-    color: var(--muted);
-    padding: 1rem;
+    color: var(--ink-mute);
+    padding: 1.2rem;
+    background: var(--paper-warm);
   }
 </style>

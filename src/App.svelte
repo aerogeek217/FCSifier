@@ -26,8 +26,17 @@
 </script>
 
 <header>
-  <h1>FCSifier</h1>
-  <nav>
+  <div class="brand">
+    <h1>
+      <span class="word">FCS<span class="ifier">ifier</span></span>
+    </h1>
+    <p class="tag">
+      <span class="tag-mark">‹/›</span>
+      EASA CS-FSTD &middot; task &times; device cross-reference
+    </p>
+  </div>
+
+  <nav class="segmented" aria-label="View">
     <a
       href="#/grid"
       class:active={currentRoute.name === 'grid'}
@@ -44,6 +53,7 @@
       onclick={(e) => go('by-device', e)}
     >By device</a>
   </nav>
+
   <div class="shared-controls">
     <label>
       <span>Level</span>
@@ -79,27 +89,110 @@
 
 <style>
   header {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    column-gap: 2rem;
+    row-gap: 0.6rem;
+    align-items: end;
   }
-  header h1 { flex: 0 0 auto; }
-  nav { flex: 1; }
-  nav a.active {
+
+  /* ── Brand ─────────────────────────────── */
+  .brand { display: flex; flex-direction: column; gap: 0.1rem; }
+  .brand h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.95rem;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
     font-weight: 600;
-    text-decoration: underline;
   }
+  .brand .word { display: inline-flex; align-items: baseline; }
+  .brand .ifier {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 500;
+  }
+  .brand .tag {
+    margin: 0;
+    font: 0.72rem/1.2 var(--font-mono);
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+  }
+  .brand .tag-mark {
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 0.35rem;
+    letter-spacing: 0;
+  }
+
+  /* ── Segmented nav ─────────────────────── */
+  .segmented {
+    justify-self: center;
+    display: inline-flex;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    padding: 3px;
+    background: var(--paper-warm);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                0 1px 0 rgba(13, 31, 60, 0.04);
+  }
+  .segmented a {
+    padding: 0.4rem 1.05rem;
+    border-radius: 999px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font: 500 0.84rem/1 var(--font-body);
+    letter-spacing: 0.02em;
+    transition: background 140ms ease, color 140ms ease;
+    position: relative;
+  }
+  .segmented a:hover { color: var(--ink); }
+  .segmented a.active {
+    background: var(--ink);
+    color: var(--paper-warm);
+    box-shadow: 0 1px 2px rgba(13, 31, 60, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .segmented a.active::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  /* ── Shared controls ───────────────────── */
   .shared-controls {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.6rem;
     align-items: center;
   }
   .shared-controls label {
     display: inline-flex;
-    gap: 0.4rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.18rem;
+    align-items: flex-start;
   }
-  .shared-controls span { color: var(--muted); font-size: 0.85rem; }
-  .shared-controls select { padding: 0.2rem 0.4rem; font: inherit; }
+  .shared-controls span {
+    color: var(--ink-mute);
+    font: 600 0.62rem/1 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .shared-controls select {
+    font-size: 0.85rem;
+    padding: 0.32rem 0.5rem;
+    min-width: 9rem;
+  }
+
+  @media (max-width: 880px) {
+    header {
+      grid-template-columns: 1fr;
+      row-gap: 0.85rem;
+    }
+    .segmented { justify-self: start; }
+    .shared-controls { flex-wrap: wrap; }
+  }
 </style>

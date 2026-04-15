@@ -59,10 +59,14 @@ CS-FSTD/
       Grid.svelte        # Default tab. Task×feature matrix of fidelity requirements
                          #   (tasksInCategory × features) at the active T/TP level.
                          #   Cells use a blue gradient N→G→R→S; when a reference FCS
-                         #   is set, cells where task > device render red. Collapsible
-                         #   FCS editor (FcsMatrix edit-mode + DevicePresets), search,
-                         #   hide-exceeding toggle, and Copy-task-list (TSV) /
-                         #   Copy-FCS (labelled) buttons via navigator.clipboard.
+                         #   is set, cells where task > device render red. Single
+                         #   sticky header row whose feature-column cells stack a
+                         #   dark "code" band (feature code) over a paper "FCS" band
+                         #   (editable dropdown) — the Reference FCS is the same set
+                         #   of <th> cells as the data columns, so they align
+                         #   natively. Toolbar above the table hosts DevicePresets,
+                         #   search, hide-exceeding toggle, and Copy-task-list (TSV)
+                         #   / Copy-FCS (labelled) buttons via navigator.clipboard.
       ByTask.svelte      # Searchable multi-select task list + required-FCS matrix
                          #   + N/A and no-requirement buckets.
       ByDevice.svelte    # Editable FCS matrix + preset controls + authorised-task
@@ -136,9 +140,12 @@ src/lib/router.svelte.ts --> src/lib/state.svelte.ts, src/domain/fcs.ts
 src/lib/FcsMatrix.svelte --> src/domain/fcs.ts
 src/lib/DevicePresets.svelte --> src/data/loader.ts (types), localStorage
 
-src/routes/Grid.svelte     --> src/lib/state.svelte.ts, src/lib/FcsMatrix.svelte,
-                               src/lib/DevicePresets.svelte, src/domain/fcs.ts
-                               (compare, formatFcs), navigator.clipboard
+src/routes/Grid.svelte     --> src/lib/state.svelte.ts, src/lib/DevicePresets.svelte,
+                               src/domain/fcs.ts (compare, formatFcs,
+                               FIDELITY_ORDER), navigator.clipboard
+                               (inlines its own header <select> per column
+                               rather than reusing FcsMatrix — the ref row is
+                               part of the grid's <thead>)
 src/routes/ByTask.svelte   --> src/lib/state.svelte.ts, src/lib/FcsMatrix.svelte
 src/routes/ByDevice.svelte --> src/lib/state.svelte.ts, src/lib/FcsMatrix.svelte,
                                src/lib/DevicePresets.svelte

@@ -99,21 +99,28 @@
 
 <style>
   .presets {
-    display: flex;
-    gap: 0.75rem;
+    display: inline-flex;
+    gap: 0.4rem;
     align-items: center;
     flex-wrap: wrap;
-    margin: 0.5rem 0;
   }
   .presets label {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
-  .presets label span { color: var(--muted); font-size: 0.9rem; }
-  .presets select, .presets button {
-    font: inherit;
-    padding: 0.25rem 0.5rem;
+  .presets label span {
+    font: 600 0.62rem/1 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
   }
-  .danger { color: #b00020; border-color: #b00020; }
+  .presets select {
+    min-width: 11rem;
+    font-size: 0.85rem;
+  }
+  .presets button {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.6rem;
+  }
 </style>

@@ -125,75 +125,120 @@
 <style>
   .by-task {
     display: grid;
-    grid-template-columns: minmax(18rem, 28rem) 1fr;
+    grid-template-columns: minmax(18rem, 30rem) 1fr;
     gap: 1.5rem;
   }
   .picker { min-width: 0; }
   .controls {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.6rem;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
     flex-wrap: wrap;
   }
-  .search { display: flex; gap: 0.25rem; align-items: center; flex: 1; }
-  .search span { color: var(--muted); font-size: 0.85rem; }
-  .search input {
-    flex: 1;
-    min-width: 6rem;
-    padding: 0.25rem 0.4rem;
-    font: inherit;
-    border: 1px solid var(--border);
-    border-radius: 3px;
+  .search { display: flex; gap: 0.4rem; align-items: center; flex: 1; }
+  .search span {
+    color: var(--ink-mute);
+    font: 600 0.62rem/1 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
   }
-  .count { color: var(--muted); font-size: 0.85rem; }
+  .search input { flex: 1; min-width: 8rem; }
+  .count {
+    color: var(--ink-mute);
+    font: 0.78rem var(--font-mono);
+    padding: 0.2rem 0.5rem;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+  }
   .tasks {
     list-style: none;
     padding: 0;
     margin: 0;
     max-height: 70vh;
     overflow: auto;
-    border: 1px solid var(--border);
-    background: #fff;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
   }
   .tasks li {
-    border-bottom: 1px solid #eee;
-    padding: 0.15rem 0.4rem;
+    border-bottom: 1px solid var(--rule-soft);
+    padding: 0.3rem 0.6rem;
+    transition: background 100ms ease;
   }
-  .tasks li.selected { background: #eef6ff; }
+  .tasks li:last-child { border-bottom: none; }
+  .tasks li:hover { background: var(--paper-soft); }
+  .tasks li.selected {
+    background: rgba(184, 82, 26, 0.08);
+    border-left: 3px solid var(--accent);
+    padding-left: calc(0.6rem - 3px);
+  }
   .tasks label {
     display: flex;
-    gap: 0.4rem;
+    gap: 0.5rem;
     align-items: baseline;
     cursor: pointer;
   }
+  .tasks input[type="checkbox"] { accent-color: var(--ink); }
   .tasks .id {
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: 0.85rem;
-    color: var(--muted);
+    font: 600 0.72rem/1 var(--font-mono);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
     flex-shrink: 0;
-    min-width: 5rem;
+    min-width: 5.5rem;
   }
-  .tasks .name { flex: 1; }
+  .tasks .name { flex: 1; color: var(--ink); }
   .tasks .tag {
-    font-size: 0.7rem;
-    padding: 0.05rem 0.3rem;
+    font: 600 0.62rem/1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.4rem;
     border-radius: 2px;
-    background: #eee;
-    color: var(--muted);
+    background: var(--paper);
+    color: var(--ink-mute);
+    border: 1px solid var(--rule);
     flex-shrink: 0;
   }
-  .empty { padding: 0.5rem; color: var(--muted); }
-  .result h2 { font-size: 1rem; margin: 0 0 0.5rem; }
-  .hint { color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 1rem; }
-  .bucket { margin-top: 1rem; }
-  .bucket h3 { font-size: 0.9rem; margin: 0 0 0.25rem; color: var(--muted); }
-  .bucket ul { list-style: none; padding: 0; margin: 0; }
-  .bucket li { padding: 0.1rem 0; }
+  .empty { padding: 0.6rem; color: var(--ink-mute); font-style: italic; }
+  .result h2 {
+    font-size: 1.15rem;
+    margin: 0 0 0.6rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .hint { color: var(--ink-mute); font-size: 0.8rem; margin: 0.6rem 0 1.2rem; font-style: italic; }
+  .bucket { margin-top: 1.2rem; }
+  .bucket h3 {
+    font: 600 0.7rem/1 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.4rem;
+    color: var(--ink-mute);
+  }
+  .bucket ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+  }
+  .bucket li {
+    padding: 0.25rem 0.6rem;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .bucket li:last-child { border-bottom: none; }
   .bucket .id {
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin-right: 0.5rem;
+    font: 600 0.72rem/1 var(--font-mono);
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-right: 0.6rem;
+  }
+
+  @media (max-width: 880px) {
+    .by-task { grid-template-columns: 1fr; }
   }
 </style>

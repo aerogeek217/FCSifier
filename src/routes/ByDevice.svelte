@@ -99,25 +99,61 @@
 
 <style>
   .by-device { display: grid; gap: 1.5rem; }
-  .device-head { display: grid; gap: 0.5rem; }
-  .device-head h2 { margin: 0; font-size: 1rem; }
-  .device-actions { margin-top: 0.5rem; }
-  .device-actions button { padding: 0.25rem 0.5rem; font: inherit; }
-  .authorized h2 { font-size: 1rem; margin: 0 0 0.25rem; }
-  .hint { color: var(--muted); font-size: 0.85rem; margin: 0 0 0.5rem; }
-  .task-list { list-style: none; padding: 0; margin: 0; }
+  .device-head {
+    display: grid;
+    gap: 0.7rem;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.1rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .device-head h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .device-actions { margin-top: 0.4rem; }
+  .device-actions button { font-size: 0.78rem; }
+
+  .authorized h2 {
+    font-size: 1.15rem;
+    margin: 0 0 0.4rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .hint { color: var(--ink-mute); font-size: 0.82rem; margin: 0 0 0.6rem; font-style: italic; }
+  .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
   .task-list li {
-    padding: 0.15rem 0.4rem;
-    border-bottom: 1px solid #eee;
-    background: #fff;
+    padding: 0.3rem 0.6rem;
+    border-bottom: 1px solid var(--rule-soft);
+    transition: background 100ms ease;
   }
+  .task-list li:last-child { border-bottom: none; }
+  .task-list li:hover { background: var(--paper-soft); }
   .task-list .id {
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin-right: 0.5rem;
+    font: 600 0.72rem/1 var(--font-mono);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-right: 0.6rem;
   }
-  .bucket { margin-top: 1rem; }
-  .bucket h3 { font-size: 0.9rem; margin: 0 0 0.25rem; color: var(--muted); }
-  .empty { color: var(--muted); }
+  .bucket { margin-top: 1.2rem; }
+  .bucket h3 {
+    font: 600 0.7rem/1 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.4rem;
+    color: var(--ink-mute);
+  }
+  .empty { color: var(--ink-mute); font-style: italic; }
 </style>
