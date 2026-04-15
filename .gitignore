@@ -17,4 +17,7 @@ desktop.ini
 *.tmp
 *.bak
 
-# [Add project-specific ignores below]
+# Node (dev-only; no runtime deps)
+node_modules/
+npm-debug.log
+.env

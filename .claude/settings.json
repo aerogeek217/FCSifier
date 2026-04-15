@@ -29,8 +29,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[REPLACE with your post-edit check, e.g.: npm run lint --silent, cargo check 2>&1, python -m py_compile $CHANGED_FILE]",
-            "timeout": 30
+            "command": "bash .claude/hooks/post-edit-check.sh \"$CLAUDE_FILE_PATHS\"",
+            "timeout": 15
           }
         ]
       }
