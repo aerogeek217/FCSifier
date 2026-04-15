@@ -9,6 +9,7 @@
 - [ ] Verify first live Pages deploy (push to `main`, check the workflow run + the published URL)
 
 ## Done (move to BACKLOG.md monthly)
+- [x] Grid view — new default tab. Task×feature matrix (`src/routes/Grid.svelte`) with blue fidelity gradient N→G→R→S; when a reference FCS is set, cells where the task requirement exceeds the device render red. Inline FCS editor (collapsible, reuses `FcsMatrix` edit-mode + `DevicePresets`), search box, "Hide tasks exceeding FCS" toggle (only visible when an FCS is set), Copy-task-list (TSV, filters applied) and Copy-FCS (labelled vector) buttons via `navigator.clipboard`. Router extended with `grid` route (default) that also persists `?fcs=`. (49/49 tests passing, `npm run check` clean, `npm run build` clean.)
 - [x] Scaffold static webapp (6/6 tests passing)
 - [x] Phase 0: toolchain — Svelte 5 + Vite + TS scaffold, CSV parser ported to TS (6/6 tests passing)
 - [x] Phase 1: domain core — `src/domain/fcs.ts` (compare/rollup/authorizes/parseFcs/formatFcs), `data/features.json`, `data/fidelity.json` (35/35 tests passing)

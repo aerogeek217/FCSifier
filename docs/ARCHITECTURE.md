@@ -3,10 +3,13 @@
 > **Status after Phase 4 (CI + docs):** The full MVP stack is wired and
 > deployable. Shared runes state (`src/lib/state.svelte.ts`) drives a hash
 > router (`src/lib/router.svelte.ts`), an `FcsMatrix` widget, a
-> `DevicePresets` picker (built-in + `localStorage`), and the two product
-> views (`src/routes/ByTask.svelte`, `ByDevice.svelte`). `App.svelte` hosts
-> the tab nav plus shared T/TP and aircraft-category controls, and loads
-> the dataset once on mount. `.github/workflows/pages.yml` runs
+> `DevicePresets` picker (built-in + `localStorage`), and three product
+> views: `src/routes/Grid.svelte` (default — task×feature matrix with a
+> blue fidelity gradient, red cells where a task requirement exceeds the
+> selected reference FCS, a hide-exceeding toggle, and copy-as-TSV /
+> copy-FCS buttons), `ByTask.svelte`, and `ByDevice.svelte`. `App.svelte`
+> hosts the tab nav plus shared T/TP and aircraft-category controls, and
+> loads the dataset once on mount. `.github/workflows/pages.yml` runs
 > `npm run check`, `npm test` (49/49), and `npm run build` (which invokes
 > `check-runtime-deps.sh`) on every push to `main`, then publishes `/dist`
 > to GitHub Pages. **Not yet verified:** end-to-end browser smoke-test of
@@ -30,7 +33,7 @@ CS-FSTD/
   src/
     app.ts               # Mounts <App /> into #app
     App.svelte           # Tab nav, shared T/TP + category controls, dataset loader,
-                         #   route host (swaps ByTask / ByDevice on currentRoute)
+                         #   route host (swaps Grid / ByTask / ByDevice on currentRoute)
     data/
       csv.ts             # Minimal CSV parser (RFC 4180-ish); TS port of earlier csv.js
       loader.ts          # parseDataset() / loadDataset(): joins features + tasks
@@ -53,6 +56,13 @@ CS-FSTD/
       DevicePresets.svelte # Load/save/delete device presets; merges
                          #   data/devices.json with localStorage user presets.
     routes/
+      Grid.svelte        # Default tab. Task×feature matrix of fidelity requirements
+                         #   (tasksInCategory × features) at the active T/TP level.
+                         #   Cells use a blue gradient N→G→R→S; when a reference FCS
+                         #   is set, cells where task > device render red. Collapsible
+                         #   FCS editor (FcsMatrix edit-mode + DevicePresets), search,
+                         #   hide-exceeding toggle, and Copy-task-list (TSV) /
+                         #   Copy-FCS (labelled) buttons via navigator.clipboard.
       ByTask.svelte      # Searchable multi-select task list + required-FCS matrix
                          #   + N/A and no-requirement buckets.
       ByDevice.svelte    # Editable FCS matrix + preset controls + authorised-task
@@ -126,13 +136,17 @@ src/lib/router.svelte.ts --> src/lib/state.svelte.ts, src/domain/fcs.ts
 src/lib/FcsMatrix.svelte --> src/domain/fcs.ts
 src/lib/DevicePresets.svelte --> src/data/loader.ts (types), localStorage
 
+src/routes/Grid.svelte     --> src/lib/state.svelte.ts, src/lib/FcsMatrix.svelte,
+                               src/lib/DevicePresets.svelte, src/domain/fcs.ts
+                               (compare, formatFcs), navigator.clipboard
 src/routes/ByTask.svelte   --> src/lib/state.svelte.ts, src/lib/FcsMatrix.svelte
 src/routes/ByDevice.svelte --> src/lib/state.svelte.ts, src/lib/FcsMatrix.svelte,
                                src/lib/DevicePresets.svelte
 
 src/App.svelte --> src/data/loader.ts (loadDataset)
 src/App.svelte --> src/lib/state.svelte.ts, src/lib/router.svelte.ts
-src/App.svelte --> src/routes/ByTask.svelte, src/routes/ByDevice.svelte
+src/App.svelte --> src/routes/Grid.svelte, src/routes/ByTask.svelte,
+                   src/routes/ByDevice.svelte
 src/App.svelte --> styles/main.css (import)
 ```
 
@@ -155,15 +169,15 @@ by Vite; `check-runtime-deps.sh` enforces that no `http(s)://` reference lands i
 | `currentRoute`, `startRouter`, `navigate` | `src/lib/router.svelte.ts` | Hash ↔ state sync via `$effect.root`; initial `readHash()` populates state, `writeHash()` is idempotent so hashchange ↔ state writes don't ping-pong |
 | `FcsMatrix` | `src/lib/FcsMatrix.svelte` | Feature-vector table; `mode: 'read' \| 'edit'`; edit mode uses dropdown-per-feature; read mode can annotate with driving tasks |
 | `DevicePresets` | `src/lib/DevicePresets.svelte` | Built-in + `localStorage` preset picker (`fcsifier:user-presets`); emits `onLoad(device)` to populate `deviceFcs` |
-| `ByTask`, `ByDevice` | `src/routes/` | The two product views; both consume `appState` and share the tabbed shell in `App.svelte` |
+| `Grid`, `ByTask`, `ByDevice` | `src/routes/` | The three product views; all consume `appState` and share the tabbed shell in `App.svelte`. `Grid` is the default tab and the only view that renders the full task×feature matrix of requirements. |
 
 ## Data Flow
 
 1. Browser loads `index.html`; Vite-emitted JS mounts `<App />` into `#app`.
 2. `App.svelte` calls `startRouter()` (reads `location.hash` into `appState`) and `loadDataset('./data/')`; the resolved dataset is assigned to `appState.dataset`.
-3. Shared `$state` on `appState` drives both views: `selectedTaskIds`, `deviceFcs`, `level`, `category`.
-4. `ByTask.svelte` reads `appState.requiredFcs` (per-feature `rollup` of selected tasks at the active level) and `appState.drivingTasksByFeature`; `ByDevice.svelte` reads `appState.deviceBuckets` (partitioned via `authorizes`).
-5. The router's `$effect` serialises `appState` back into `location.hash` via `history.replaceState`, so every view (route + selection) is shareable as a URL.
+3. Shared `$state` on `appState` drives all three views: `selectedTaskIds`, `deviceFcs`, `level`, `category`.
+4. `Grid.svelte` iterates `appState.tasksInCategory`, reads each task's FCS at the active level, and colours each cell via `compare(taskFidelity, deviceFidelity)` (red when >, blue gradient otherwise); `ByTask.svelte` reads `appState.requiredFcs` (per-feature `rollup` of selected tasks at the active level) and `appState.drivingTasksByFeature`; `ByDevice.svelte` reads `appState.deviceBuckets` (partitioned via `authorizes`).
+5. The router's `$effect` serialises `appState` back into `location.hash` via `history.replaceState`, so every view (route + selection) is shareable as a URL. `grid` and `by-device` both persist `?fcs=` to the hash; `by-task` persists `?tasks=`.
 
 ## Where to Find Things
 
@@ -182,6 +196,7 @@ by Vite; `check-runtime-deps.sh` enforces that no `http(s)://` reference lands i
 | Change preset storage (key, shape, built-in vs. user) | `src/lib/DevicePresets.svelte` |
 | Change the by-task view (list, search, buckets) | `src/routes/ByTask.svelte` |
 | Change the by-device view (layout, buckets, actions) | `src/routes/ByDevice.svelte` |
+| Change the grid view (colours, hide-exceeding, copy formats, sticky column) | `src/routes/Grid.svelte` |
 | Change the tab nav, shared controls, or the data-load flow | `src/App.svelte` |
 | Add / edit FCS domain logic | `src/domain/fcs.ts` (+ `test/fcs.test.ts`) |
 | Change the canonical feature list or fidelity order | `data/features.json` / `data/fidelity.json` |

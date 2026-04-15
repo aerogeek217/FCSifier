@@ -1,6 +1,6 @@
 # Feature: FCSifier MVP — Task ↔ FCS Cross-Reference
 
-**Status**: Draft
+**Status**: In Progress (Phases 0–4 complete; open: browser smoke-test, live Pages deploy)
 **Date**: 2026-04-14
 
 ## Goal

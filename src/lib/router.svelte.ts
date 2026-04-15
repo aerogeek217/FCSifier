@@ -7,10 +7,10 @@
 import { appState } from './state.svelte.ts';
 import { parseFcs, formatFcs } from '../domain/fcs.ts';
 
-export type RouteName = 'by-task' | 'by-device';
+export type RouteName = 'grid' | 'by-task' | 'by-device';
 
 class RouteState {
-  name = $state<RouteName>('by-task');
+  name = $state<RouteName>('grid');
 }
 
 export const currentRoute = new RouteState();
@@ -26,7 +26,9 @@ function readHash(): void {
   const query = qIndex >= 0 ? raw.slice(qIndex + 1) : '';
   const params = new URLSearchParams(query);
 
-  currentRoute.name = path === '/by-device' ? 'by-device' : 'by-task';
+  if (path === '/by-device') currentRoute.name = 'by-device';
+  else if (path === '/by-task') currentRoute.name = 'by-task';
+  else currentRoute.name = 'grid';
 
   const level = params.get('level');
   appState.level = level === 'T' ? 'T' : 'TP';
@@ -53,7 +55,10 @@ function writeHash(): void {
   if (currentRoute.name === 'by-task' && appState.selectedTaskIds.length > 0) {
     params.set('tasks', appState.selectedTaskIds.join(','));
   }
-  if (currentRoute.name === 'by-device' && Object.keys(appState.deviceFcs).length > 0) {
+  if (
+    (currentRoute.name === 'by-device' || currentRoute.name === 'grid') &&
+    Object.keys(appState.deviceFcs).length > 0
+  ) {
     params.set('fcs', formatFcs(appState.deviceFcs));
   }
   const q = params.toString();

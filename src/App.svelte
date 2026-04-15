@@ -3,6 +3,7 @@
   import { loadDataset } from './data/loader.ts';
   import { appState } from './lib/state.svelte.ts';
   import { currentRoute, navigate, startRouter } from './lib/router.svelte.ts';
+  import Grid from './routes/Grid.svelte';
   import ByTask from './routes/ByTask.svelte';
   import ByDevice from './routes/ByDevice.svelte';
   import '../styles/main.css';
@@ -18,7 +19,7 @@
     return stop;
   });
 
-  function go(name: 'by-task' | 'by-device', e: Event): void {
+  function go(name: 'grid' | 'by-task' | 'by-device', e: Event): void {
     e.preventDefault();
     navigate(name);
   }
@@ -27,6 +28,11 @@
 <header>
   <h1>FCSifier</h1>
   <nav>
+    <a
+      href="#/grid"
+      class:active={currentRoute.name === 'grid'}
+      onclick={(e) => go('grid', e)}
+    >Grid</a>
     <a
       href="#/by-task"
       class:active={currentRoute.name === 'by-task'}
@@ -64,8 +70,10 @@
     <p class="error">Failed to load dataset: {error}</p>
   {:else if currentRoute.name === 'by-device'}
     <ByDevice />
-  {:else}
+  {:else if currentRoute.name === 'by-task'}
     <ByTask />
+  {:else}
+    <Grid />
   {/if}
 </main>
 
